@@ -148,4 +148,10 @@
   ::selection {
     background: color-mix(in srgb, var(--primary) 35%, transparent);
   }
+
+  /* Prevent native date inputs from forcing horizontal overflow on iOS. */
+  input[type="date"] {
+    max-width: 100%;
+    min-width: 0;
+  }
 }

@@ -224,8 +224,8 @@ function TaskDetailBody({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="detail-due">Due date</Label>
             <Input
               id="detail-due"
@@ -235,10 +235,10 @@ function TaskDetailBody({
             />
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             <Label>Assignee</Label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger>
+              <SelectTrigger className="min-w-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

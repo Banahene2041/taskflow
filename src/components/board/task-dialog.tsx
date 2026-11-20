@@ -81,8 +81,11 @@ function TaskDialogForm({
   }
 
   return (
-    <form className="grid gap-4" onSubmit={(event) => void handleSubmit(event)}>
-      <div className="grid gap-2">
+    <form
+      className="grid min-w-0 gap-4 overflow-x-hidden"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
+      <div className="grid min-w-0 gap-2">
         <Label htmlFor="task-title">Title</Label>
         <Input
           id="task-title"
@@ -93,7 +96,7 @@ function TaskDialogForm({
         />
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <Label htmlFor="task-description">Description</Label>
         <Textarea
           id="task-description"
@@ -103,14 +106,14 @@ function TaskDialogForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-2">
           <Label>Status</Label>
           <Select
             value={status}
             onValueChange={(value) => setStatus(value as TaskStatus)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -123,13 +126,13 @@ function TaskDialogForm({
           </Select>
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
           <Label>Priority</Label>
           <Select
             value={priority}
             onValueChange={(value) => setPriority(value as TaskPriority)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -143,8 +146,8 @@ function TaskDialogForm({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-2">
           <Label htmlFor="task-due">Due date</Label>
           <Input
             id="task-due"
@@ -154,10 +157,10 @@ function TaskDialogForm({
           />
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
           <Label>Assignee</Label>
           <Select value={assigneeId} onValueChange={setAssigneeId}>
-            <SelectTrigger>
+            <SelectTrigger className="min-w-0">
               <SelectValue placeholder="Unassigned" />
             </SelectTrigger>
             <SelectContent>
