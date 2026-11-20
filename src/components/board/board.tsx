@@ -88,7 +88,7 @@ export function Board({ onOpenTask, onCreateTask }: BoardProps) {
   }
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    const { over } = event;
     const current = activeTask;
     setActiveTask(null);
 
