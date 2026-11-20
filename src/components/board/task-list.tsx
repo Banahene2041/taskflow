@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -9,9 +9,6 @@ import {
   useDroppable,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DragOverEvent,
-  type DragStartEvent,
   type DropAnimation,
 } from "@dnd-kit/core";
 import {
@@ -27,9 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BOARD_COLUMNS, PRIORITY_LABELS } from "@/features/tasks/constants";
 import { useBoardStore } from "@/features/tasks/board-store";
-import { resolveDropTarget } from "@/features/tasks/dnd";
 import { taskBoardCollisionDetection } from "@/features/tasks/dnd-collision";
 import { useFilteredTasks, useTasksByStatus } from "@/features/tasks/hooks";
+import { useTaskDnd } from "@/features/tasks/use-task-dnd";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 
@@ -239,100 +236,23 @@ type TaskListProps = {
 };
 
 export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
-  const {
-    tasks,
-    filters,
-    reorderTaskLocal,
-    restoreTasks,
-    commitTaskOrder,
-  } = useBoardStore();
+  const { tasks, filters } = useBoardStore();
   const filteredTasks = useFilteredTasks(tasks, filters);
   const grouped = useTasksByStatus(filteredTasks);
-  const groupedAll = useTasksByStatus(tasks);
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [moveError, setMoveError] = useState<string | null>(null);
-  const dragSnapshotRef = useRef<Task[] | null>(null);
+  const {
+    activeTask,
+    moveError,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragCancel,
+  } = useTaskDnd(tasks);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 6 },
     }),
   );
-
-  const taskLookup = useMemo(() => {
-    const map = new Map<string, Task>();
-    for (const task of tasks) map.set(task.id, task);
-    return map;
-  }, [tasks]);
-
-  function handleDragStart(event: DragStartEvent) {
-    setActiveTask(taskLookup.get(String(event.active.id)) ?? null);
-    setMoveError(null);
-    dragSnapshotRef.current = tasks;
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    if (activeId === overId) return;
-
-    const activeTaskState = taskLookup.get(activeId);
-    if (!activeTaskState) return;
-
-    const overData = over.data.current as
-      | { type?: string; status?: TaskStatus; task?: Task }
-      | undefined;
-
-    const target = resolveDropTarget(
-      overId,
-      overData,
-      activeId,
-      groupedAll,
-      tasks,
-    );
-    if (!target) return;
-
-    if (
-      activeTaskState.status === target.status &&
-      overData?.type !== "task"
-    ) {
-      return;
-    }
-
-    if (activeTaskState.status === target.status) {
-      const fromIndex = groupedAll[target.status].findIndex(
-        (task) => task.id === activeId,
-      );
-      if (fromIndex === target.index) return;
-    }
-
-    reorderTaskLocal(activeId, target.status, target.index);
-  }
-
-  async function handleDragEnd(_event: DragEndEvent) {
-    setActiveTask(null);
-    const snapshot = dragSnapshotRef.current;
-    dragSnapshotRef.current = null;
-    if (!snapshot) return;
-
-    try {
-      await commitTaskOrder(snapshot);
-    } catch (err) {
-      setMoveError(
-        err instanceof Error ? err.message : "Failed to reorder task.",
-      );
-    }
-  }
-
-  function handleDragCancel() {
-    setActiveTask(null);
-    const snapshot = dragSnapshotRef.current;
-    dragSnapshotRef.current = null;
-    if (snapshot) restoreTasks(snapshot);
-  }
 
   if (filteredTasks.length === 0) {
     return (
