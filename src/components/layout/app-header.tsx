@@ -79,7 +79,7 @@ export function AppHeader() {
               onChange={(event) => setFilters({ search: event.target.value })}
               placeholder="Search"
               aria-label="Search tasks"
-              className="h-9 w-full rounded-full border-0 bg-search px-10 pr-14 text-sm text-foreground outline-none ring-0 placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-9 w-full rounded-full border border-border/60 bg-search px-10 pr-14 text-sm text-foreground outline-none ring-0 placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring"
             />
             <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
               ⌘ K

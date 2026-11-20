@@ -36,7 +36,7 @@
   --sidebar-accent: #2e2f31;
   --sidebar-accent-foreground: #f5f4f3;
   --header: #ffffff;
-  --search: #e8eaed;
+  --search: #d8dde3;
   --radius: 0.5rem;
   --shadow-sm: 0 1px 2px rgba(30, 31, 33, 0.06);
   --shadow-md: 0 4px 12px rgba(30, 31, 33, 0.08);
@@ -79,7 +79,7 @@
   --sidebar-accent: #2e2f31;
   --sidebar-accent-foreground: #f5f4f3;
   --header: #1e1f21;
-  --search: #2e2f31;
+  --search: #3a3b3d;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.5);
