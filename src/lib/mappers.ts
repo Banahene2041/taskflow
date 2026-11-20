@@ -54,6 +54,7 @@ export function mapTask(
     status: row.status as TaskStatus,
     priority: row.priority as TaskPriority,
     dueDate: row.due_date,
+    position: row.position ?? 0,
     userId: row.user_id,
     assigneeId: row.assignee_id,
     assignee,

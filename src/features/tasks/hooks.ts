@@ -22,6 +22,13 @@ export function useTasksByStatus(tasks: Task[]) {
       grouped[task.status].push(task);
     }
 
+    for (const status of Object.keys(grouped) as TaskStatus[]) {
+      grouped[status].sort((a, b) => {
+        if (a.position !== b.position) return a.position - b.position;
+        return a.createdAt.localeCompare(b.createdAt);
+      });
+    }
+
     return grouped;
   }, [tasks]);
 }

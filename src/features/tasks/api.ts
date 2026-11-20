@@ -45,7 +45,11 @@ export async function fetchBoardData(): Promise<{
 
   const [tasksResult, membersResult, labelsResult, taskLabelsResult] =
     await Promise.all([
-      supabase.from("tasks").select("*").order("created_at", { ascending: true }),
+      supabase
+        .from("tasks")
+        .select("*")
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true }),
       supabase
         .from("team_members")
         .select("*")
@@ -86,6 +90,18 @@ export async function fetchBoardData(): Promise<{
 
 export async function createTask(input: CreateTaskInput): Promise<Task> {
   const { supabase, userId } = await requireUserId();
+  const status = input.status ?? "todo";
+
+  const { data: maxRow } = await supabase
+    .from("tasks")
+    .select("position")
+    .eq("user_id", userId)
+    .eq("status", status)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const nextPosition = (maxRow?.position ?? -1) + 1;
 
   const { data, error } = await supabase
     .from("tasks")
@@ -93,10 +109,11 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
       user_id: userId,
       title: input.title,
       description: input.description || null,
-      status: input.status ?? "todo",
+      status,
       priority: input.priority ?? "normal",
       due_date: input.dueDate || null,
       assignee_id: input.assigneeId || null,
+      position: nextPosition,
     })
     .select("*")
     .single();
@@ -185,6 +202,25 @@ export async function updateTaskStatus(
     .eq("id", input.id);
 
   if (error) throw new Error(error.message);
+}
+
+export async function persistTaskOrder(
+  updates: Array<{ id: string; status: Task["status"]; position: number }>,
+): Promise<void> {
+  if (updates.length === 0) return;
+
+  const { supabase } = await requireUserId();
+  const results = await Promise.all(
+    updates.map((update) =>
+      supabase
+        .from("tasks")
+        .update({ status: update.status, position: update.position })
+        .eq("id", update.id),
+    ),
+  );
+
+  const failed = results.find((result) => result.error);
+  if (failed?.error) throw new Error(failed.error.message);
 }
 
 export async function deleteTask(taskId: string): Promise<void> {

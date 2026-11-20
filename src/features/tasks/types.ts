@@ -32,6 +32,7 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null;
+  position: number;
   userId: string;
   assigneeId: string | null;
   assignee: TaskAssignee | null;

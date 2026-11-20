@@ -19,6 +19,7 @@ export type Database = {
           priority: "low" | "normal" | "high";
           due_date: string | null;
           assignee_id: string | null;
+          position: number;
           created_at: string;
           updated_at: string;
         };
@@ -31,6 +32,7 @@ export type Database = {
           priority?: "low" | "normal" | "high";
           due_date?: string | null;
           assignee_id?: string | null;
+          position?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,6 +45,7 @@ export type Database = {
           priority?: "low" | "normal" | "high";
           due_date?: string | null;
           assignee_id?: string | null;
+          position?: number;
           created_at?: string;
           updated_at?: string;
         };

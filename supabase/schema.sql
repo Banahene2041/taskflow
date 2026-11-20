@@ -37,9 +37,30 @@ create table if not exists public.tasks (
     check (priority in ('low', 'normal', 'high')),
   due_date date,
   assignee_id uuid references public.team_members (id) on delete set null,
+  position integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Existing projects: add position if the table was created before this column existed.
+alter table public.tasks
+  add column if not exists position integer not null default 0;
+
+-- Backfill stable per-status positions for rows that still share the default.
+with ranked as (
+  select
+    id,
+    row_number() over (
+      partition by user_id, status
+      order by position asc, created_at asc
+    ) - 1 as next_position
+  from public.tasks
+)
+update public.tasks as t
+set position = ranked.next_position
+from ranked
+where t.id = ranked.id
+  and t.position is distinct from ranked.next_position;
 
 create table if not exists public.task_labels (
   task_id uuid not null references public.tasks (id) on delete cascade,
@@ -66,6 +87,7 @@ create table if not exists public.task_activity (
 
 create index if not exists tasks_user_id_idx on public.tasks (user_id);
 create index if not exists tasks_status_idx on public.tasks (user_id, status);
+create index if not exists tasks_status_position_idx on public.tasks (user_id, status, position);
 create index if not exists team_members_user_id_idx on public.team_members (user_id);
 create index if not exists labels_user_id_idx on public.labels (user_id);
 create index if not exists comments_task_id_idx on public.comments (task_id);

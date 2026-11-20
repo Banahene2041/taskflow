@@ -24,8 +24,10 @@ import {
   fetchComments,
   seedDemoData,
   updateTask,
+  persistTaskOrder,
   updateTaskStatus,
 } from "@/features/tasks/api";
+import { reorderTasks } from "@/features/tasks/reorder";
 import type {
   CreateCommentInput,
   CreateLabelInput,
@@ -56,6 +58,11 @@ type BoardStoreValue = {
   createTask: (input: CreateTaskInput) => Promise<void>;
   updateTask: (input: UpdateTaskInput) => Promise<void>;
   moveTask: (taskId: string, status: TaskStatus) => Promise<void>;
+  reorderTask: (
+    taskId: string,
+    status: TaskStatus,
+    index: number,
+  ) => Promise<void>;
   removeTask: (taskId: string) => Promise<void>;
   addMember: (input: CreateMemberInput) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
@@ -146,16 +153,44 @@ export function BoardStoreProvider({ children }: { children: ReactNode }) {
       },
       async moveTask(taskId, status) {
         const previous = tasks;
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === taskId
-              ? { ...task, status, updatedAt: new Date().toISOString() }
-              : task,
-          ),
+        const moving = tasks.find((task) => task.id === taskId);
+        if (!moving || moving.status === status) return;
+
+        const targetCount = tasks.filter((task) => task.status === status).length;
+        const { tasks: nextTasks, updates } = reorderTasks(
+          tasks,
+          taskId,
+          status,
+          targetCount,
         );
 
+        setTasks(nextTasks);
+
         try {
-          await updateTaskStatus({ id: taskId, status });
+          if (updates.length > 0) {
+            await persistTaskOrder(updates);
+          } else {
+            await updateTaskStatus({ id: taskId, status });
+          }
+        } catch (err) {
+          setTasks(previous);
+          throw err;
+        }
+      },
+      async reorderTask(taskId, status, index) {
+        const previous = tasks;
+        const { tasks: nextTasks, updates } = reorderTasks(
+          tasks,
+          taskId,
+          status,
+          index,
+        );
+        if (updates.length === 0) return;
+
+        setTasks(nextTasks);
+
+        try {
+          await persistTaskOrder(updates);
         } catch (err) {
           setTasks(previous);
           throw err;

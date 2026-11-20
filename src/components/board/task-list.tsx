@@ -7,7 +7,6 @@ import {
   PointerSensor,
   closestCorners,
   defaultDropAnimationSideEffects,
-  useDraggable,
   useDroppable,
   useSensor,
   useSensors,
@@ -15,6 +14,11 @@ import {
   type DragStartEvent,
   type DropAnimation,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
 import { Check, Circle, GripVertical, Plus } from "lucide-react";
@@ -24,6 +28,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BOARD_COLUMNS, PRIORITY_LABELS } from "@/features/tasks/constants";
 import { useBoardStore } from "@/features/tasks/board-store";
 import { useFilteredTasks, useTasksByStatus } from "@/features/tasks/hooks";
+import { resolveDropIndex } from "@/features/tasks/reorder";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 
@@ -66,15 +71,22 @@ function ListRow({
   task: Task;
   onOpen?: (task: Task) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: task.id,
-      data: { type: "task", task, status: task.status },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: { type: "task", task, status: task.status },
+  });
 
   const done = task.status === "done";
   const style = {
-    transform: isDragging ? undefined : CSS.Translate.toString(transform),
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
 
   return (
@@ -175,6 +187,7 @@ function ListSection({
     data: { type: "section", status },
   });
   const highlighted = Boolean(active) && isOver;
+  const itemIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
 
   return (
     <section>
@@ -199,11 +212,13 @@ function ListSection({
           <span className="text-right">Due date</span>
         </div>
 
-        <ul>
-          {tasks.map((task) => (
-            <ListRow key={task.id} task={task} onOpen={onOpenTask} />
-          ))}
-        </ul>
+        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+          <ul>
+            {tasks.map((task) => (
+              <ListRow key={task.id} task={task} onOpen={onOpenTask} />
+            ))}
+          </ul>
+        </SortableContext>
 
         {tasks.length === 0 ? (
           <div
@@ -236,7 +251,7 @@ type TaskListProps = {
 };
 
 export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
-  const { tasks, filters, moveTask } = useBoardStore();
+  const { tasks, filters, reorderTask } = useBoardStore();
   const filteredTasks = useFilteredTasks(tasks, filters);
   const grouped = useTasksByStatus(filteredTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -265,21 +280,34 @@ export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
     setActiveTask(null);
     if (!over || !current) return;
 
-    const nextStatus = resolveStatus(
-      String(over.id),
-      over.data.current as
-        | { type?: string; status?: TaskStatus; task?: Task }
-        | undefined,
-      tasks,
+    const overId = String(over.id);
+    if (overId === current.id) return;
+
+    const overData = over.data.current as
+      | { type?: string; status?: TaskStatus; task?: Task }
+      | undefined;
+
+    const nextStatus = resolveStatus(overId, overData, tasks);
+    if (!nextStatus) return;
+
+    const destination = grouped[nextStatus];
+    const toIndex = resolveDropIndex(
+      overId,
+      overData?.type,
+      destination,
+      current.id,
     );
 
-    if (!nextStatus || current.status === nextStatus) return;
+    if (current.status === nextStatus) {
+      const fromIndex = destination.findIndex((task) => task.id === current.id);
+      if (fromIndex === toIndex) return;
+    }
 
     try {
-      await moveTask(current.id, nextStatus);
+      await reorderTask(current.id, nextStatus, toIndex);
     } catch (err) {
       setMoveError(
-        err instanceof Error ? err.message : "Failed to update task status.",
+        err instanceof Error ? err.message : "Failed to reorder task.",
       );
     }
   }
@@ -311,7 +339,7 @@ export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
           + Add task
         </Button>
         <span className="text-xs text-muted-foreground">
-          Drag a row to move tasks between sections
+          Drag a row to reorder or move between sections
         </span>
       </div>
 
