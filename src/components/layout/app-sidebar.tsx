@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/auth-provider";
 
 const navItems = [
   { label: "Board", href: "/", icon: LayoutGrid },
@@ -27,6 +28,8 @@ type AppSidebarProps = {
 
 export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const shortId = user?.id ? user.id.slice(0, 8) : "guest";
 
   return (
     <aside
@@ -92,7 +95,7 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">Guest User</p>
             <p className="truncate text-xs text-muted-foreground">
-              Anonymous session
+              {shortId}
             </p>
           </div>
         </div>

@@ -16,6 +16,7 @@ export type TaskAssignee = {
   name: string;
   initials: string;
   color: string;
+  avatarUrl: string | null;
 };
 
 export type TaskLabel = {
@@ -24,10 +25,6 @@ export type TaskLabel = {
   color: string;
 };
 
-/**
- * Application task shape. Field names align with the planned Supabase
- * `tasks` table (camelCase in app / snake_case in DB).
- */
 export type Task = {
   id: string;
   title: string;
@@ -58,4 +55,28 @@ export type TaskStats = {
   inReview: number;
   done: number;
   overdue: number;
+};
+
+export type TaskComment = {
+  id: string;
+  taskId: string;
+  userId: string;
+  body: string;
+  createdAt: string;
+};
+
+export type TaskActivity = {
+  id: string;
+  taskId: string;
+  userId: string;
+  action: string;
+  meta: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type BoardFilters = {
+  search: string;
+  priority: TaskPriority | "all";
+  assigneeId: string | "all";
+  labelId: string | "all";
 };

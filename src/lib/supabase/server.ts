@@ -1,24 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { requireSupabaseEnv } from "@/lib/supabase/env";
+import type { Database } from "@/types/database";
+
 /**
  * Server Supabase client for Server Components, Route Handlers, and Server Actions.
  * Creates a fresh client per request — do not cache across requests.
- * Never use the service-role key here.
  */
 export async function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.local and fill in your Supabase project values.",
-    );
-  }
-
+  const { url, anonKey } = requireSupabaseEnv();
   const cookieStore = await cookies();
 
-  return createServerClient(url, anonKey, {
+  return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -29,8 +23,7 @@ export async function createClient() {
             cookieStore.set(name, value, options);
           });
         } catch {
-          // setAll can fail in Server Components when the response is already
-          // streaming. Middleware will refresh sessions in a later phase.
+          // Ignored in Server Components; proxy refreshes the session.
         }
       },
     },

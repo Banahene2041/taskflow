@@ -23,6 +23,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useBoardStore } from "@/features/tasks/board-store";
+import { useAuth } from "@/providers/auth-provider";
 
 type AppHeaderProps = {
   title?: string;
@@ -34,6 +36,9 @@ export function AppHeader({
   onCreateTask,
 }: AppHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
+  const { filters, setFilters } = useBoardStore();
+  const shortId = user?.id ? `${user.id.slice(0, 8)}…` : "Guest";
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur-md">
@@ -73,6 +78,8 @@ export function AppHeader({
           />
           <Input
             type="search"
+            value={filters.search}
+            onChange={(event) => setFilters({ search: event.target.value })}
             placeholder="Search tasks..."
             className="h-9 pl-9"
             aria-label="Search tasks"
@@ -96,11 +103,12 @@ export function AppHeader({
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>Guest session</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>Profile (coming soon)</DropdownMenuItem>
-            <DropdownMenuItem disabled>Preferences</DropdownMenuItem>
+            <DropdownMenuItem disabled className="text-xs">
+              {shortId}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 

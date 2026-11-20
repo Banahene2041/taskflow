@@ -2,7 +2,12 @@
 
 import { useMemo } from "react";
 
-import type { Task, TaskStats, TaskStatus } from "./types";
+import type {
+  BoardFilters,
+  Task,
+  TaskStats,
+  TaskStatus,
+} from "@/features/tasks/types";
 
 export function useTasksByStatus(tasks: Task[]) {
   return useMemo(() => {
@@ -38,4 +43,36 @@ export function useTaskStats(tasks: Task[]): TaskStats {
       }).length,
     };
   }, [tasks]);
+}
+
+export function useFilteredTasks(tasks: Task[], filters: BoardFilters) {
+  return useMemo(() => {
+    const query = filters.search.trim().toLowerCase();
+
+    return tasks.filter((task) => {
+      if (query && !task.title.toLowerCase().includes(query)) {
+        return false;
+      }
+
+      if (filters.priority !== "all" && task.priority !== filters.priority) {
+        return false;
+      }
+
+      if (
+        filters.assigneeId !== "all" &&
+        task.assigneeId !== filters.assigneeId
+      ) {
+        return false;
+      }
+
+      if (
+        filters.labelId !== "all" &&
+        !task.labels.some((label) => label.id === filters.labelId)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [tasks, filters]);
 }

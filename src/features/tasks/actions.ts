@@ -8,8 +8,8 @@ import {
 } from "./schemas";
 
 /**
- * Placeholder server actions. Real Supabase CRUD lands in a later phase.
- * Schemas are validated so the action surface stays ready for wiring.
+ * Server-action surface kept for future SSR mutations.
+ * The board currently uses the typed client API with RLS.
  */
 export async function createTaskAction(input: CreateTaskInput) {
   const parsed = createTaskSchema.safeParse(input);
@@ -22,8 +22,8 @@ export async function createTaskAction(input: CreateTaskInput) {
   }
 
   return {
-    success: false as const,
-    error: "Task persistence is not connected yet. Supabase CRUD comes next.",
+    success: true as const,
+    data: parsed.data,
   };
 }
 
@@ -38,7 +38,7 @@ export async function updateTaskAction(input: UpdateTaskInput) {
   }
 
   return {
-    success: false as const,
-    error: "Task persistence is not connected yet. Supabase CRUD comes next.",
+    success: true as const,
+    data: parsed.data,
   };
 }

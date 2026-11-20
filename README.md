@@ -1,88 +1,99 @@
 # TaskFlow
 
-A polished Kanban-style task board built with **Next.js 16**, **TypeScript**, **Tailwind CSS**, **shadcn/ui**, and **Supabase**.
+A polished Kanban task board for the Next Play Games internship assessment.
 
-This repository is currently in **phase 1**: application shell, design system, task foundation, and a mock-data dashboard. Authentication, RLS, CRUD, and drag-and-drop land in later phases.
+Built with **Next.js 16**, **TypeScript**, **Tailwind CSS**, **shadcn/ui**, **Supabase** (anonymous auth + RLS), and **@dnd-kit**.
 
-## Stack
+## Features
 
-| Layer | Choice |
-| --- | --- |
-| Framework | Next.js 16 (App Router) + React 19 |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS 4 + CSS variables |
-| UI | shadcn/ui primitives + Lucide icons |
-| Auth / DB | Supabase (`@supabase/ssr`, `@supabase/supabase-js`) — stubs only for now |
-| Validation | Zod |
-| Dates | date-fns |
-| DnD | `@dnd-kit/*` (installed, not wired yet) |
-| Themes | `next-themes` (light / dark / system) |
-| Package manager | pnpm |
+### Required
+- Anonymous guest sessions (Supabase Auth)
+- Kanban board: To Do · In Progress · In Review · Done
+- Create / edit / delete tasks (title, description, priority, due date, assignee, labels)
+- Drag-and-drop status updates with optimistic UI
+- RLS so each guest only sees their own data
+- Loading, empty, and error states
+- Light / dark / system themes
 
-## Getting started
+### Advanced
+- Team members with colored avatars + assignment
+- Labels / tags with board filtering
+- Task comments (chronological)
+- Activity log (status moves, edits, assignments)
+- Due-date urgency indicators (soon / overdue)
+- Search + filters (priority, assignee, label)
+- Board summary stats
+
+## Setup
+
+### 1. Install
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# Fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY when ready
+```
+
+### 2. Supabase project
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. **Authentication → Providers → Anonymous** → enable.
+3. **SQL Editor** → paste and run [`supabase/schema.sql`](./supabase/schema.sql).
+4. **Project Settings → API** → copy Project URL and `anon` `public` key into `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+Never put the **service role** key in the frontend or commit it.
+
+### 3. Run
+
+```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Scripts
+Open [http://localhost:3000](http://localhost:3000). A guest session is created automatically.
 
 ```bash
-pnpm dev          # development server (Turbopack)
-pnpm build        # production build
-pnpm start        # serve production build
-pnpm lint         # ESLint
-pnpm typecheck    # TypeScript
+pnpm build      # production build
+pnpm start      # serve production
+pnpm lint
+pnpm typecheck
 ```
 
-## Project structure
+## Architecture
 
 ```text
 src/
-├── app/                 # App Router routes, layout, loading, error
+├── app/                 # Routes, layout, loading, error
 ├── components/
-│   ├── layout/          # Sidebar, header, shell, theme toggle
-│   ├── board/           # Kanban board, columns, cards, dialog, stats
-│   └── ui/              # Reusable shadcn-style primitives
-├── features/tasks/      # Types, schemas, constants, hooks, mock data
-├── lib/supabase/        # Browser + server client helpers
-└── providers/           # Theme provider
+│   ├── board/           # Kanban UI, dialogs, detail panel, team settings
+│   ├── layout/          # Shell, sidebar, header, theme toggle
+│   └── ui/              # shadcn-style primitives
+├── features/tasks/      # Types, schemas, API, board store, hooks
+├── lib/supabase/        # Browser + server clients, proxy session refresh
+├── providers/           # Theme + auth
+└── proxy.ts             # Next.js 16 session refresh (replaces middleware)
 ```
 
-## Manual configuration
+Guest auth runs in the browser via `signInAnonymously()`. The Proxy refreshes cookies on each request. Mutations go through the typed client API and are enforced by RLS.
 
-1. Create a free Supabase project.
-2. Copy `.env.example` → `.env.local` and paste the **project URL** and **anon key**.
-3. Do **not** put the service-role key in frontend env vars or commit it.
+## Database schema
 
-Database schema, RLS, and anonymous guest auth will be added in a subsequent phase. The app UI runs with mock data without Supabase credentials.
+Full SQL lives in [`supabase/schema.sql`](./supabase/schema.sql).
 
-## Design system
+Tables: `tasks`, `team_members`, `labels`, `task_labels`, `comments`, `task_activity`.
 
-Central CSS variables in `src/app/globals.css` drive light and dark themes:
+`tasks` fields: `id`, `title`, `description`, `status`, `priority`, `due_date`, `user_id`, `assignee_id`, `created_at`, `updated_at`.
 
-- Light background `#F7F8FA`, surface `#FFFFFF`, primary `#635BFF`
-- Dark background `#171923`, surface `#242735`, elevated `#303445`
+## Deploy (Vercel)
 
-## Phase 1 scope
+1. Push the repo to GitHub.
+2. Import in Vercel and set the two `NEXT_PUBLIC_SUPABASE_*` env vars.
+3. Deploy. Include the live URL in your assessment PDF.
 
-Implemented:
+## Assessment notes
 
-- Application shell (sidebar, header, responsive mobile nav)
-- Theme system with system preference support
-- Mock Kanban board (To Do / In Progress / In Review / Done)
-- Task types, Zod schemas, board constants
-- Supabase client stubs
-- Loading and error UI
-
-Not yet implemented (by design):
-
-- Supabase anonymous auth / guest sessions
-- Database tables and RLS
-- Real task CRUD
-- Drag-and-drop status updates
+- Design system uses the assessment palette via CSS variables.
+- Do not publicly post the assessment PDF or a public “submission” link on LinkedIn/GitHub profiles per the brief; a private demo URL on a resume is fine.

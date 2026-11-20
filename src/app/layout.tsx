@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BoardStoreProvider } from "@/features/tasks/board-store";
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
+import { AuthProvider } from "@/providers/auth-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 
 import "./globals.css";
@@ -39,7 +41,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <AuthProvider>
+            <BoardStoreProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+            </BoardStoreProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

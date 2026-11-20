@@ -1,22 +1,43 @@
+"use client";
+
+import { useDroppable } from "@dnd-kit/core";
 import { Plus } from "lucide-react";
 
 import { TaskCard } from "@/components/board/task-card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { BoardColumn as BoardColumnType, Task } from "@/features/tasks/types";
+import type {
+  BoardColumn as BoardColumnType,
+  Task,
+} from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 
 type BoardColumnProps = {
   column: BoardColumnType;
   tasks: Task[];
+  onOpenTask: (task: Task) => void;
+  onCreateInColumn: (status: BoardColumnType["id"]) => void;
   className?: string;
 };
 
-export function BoardColumn({ column, tasks, className }: BoardColumnProps) {
+export function BoardColumn({
+  column,
+  tasks,
+  onOpenTask,
+  onCreateInColumn,
+  className,
+}: BoardColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+    data: { type: "column", status: column.id },
+  });
+
   return (
     <section
+      ref={setNodeRef}
       className={cn(
-        "flex min-h-[28rem] w-[280px] shrink-0 flex-col rounded-2xl border border-border bg-muted/40 dark:bg-surface/40",
+        "flex min-h-[28rem] w-[280px] shrink-0 flex-col rounded-2xl border border-border bg-muted/40 transition-colors dark:bg-surface/40",
+        isOver && "border-primary/40 bg-primary/5",
         className,
       )}
       aria-labelledby={`column-${column.id}-title`}
@@ -43,7 +64,7 @@ export function BoardColumn({ column, tasks, className }: BoardColumnProps) {
           size="icon-sm"
           className="shrink-0 text-muted-foreground"
           aria-label={`Add task to ${column.title}`}
-          disabled
+          onClick={() => onCreateInColumn(column.id)}
         >
           <Plus className="size-4" />
         </Button>
@@ -52,7 +73,9 @@ export function BoardColumn({ column, tasks, className }: BoardColumnProps) {
       <ScrollArea className="flex-1 px-2.5 pb-3">
         <div className="flex flex-col gap-2.5 pr-1.5">
           {tasks.length > 0 ? (
-            tasks.map((task) => <TaskCard key={task.id} task={task} />)
+            tasks.map((task) => (
+              <TaskCard key={task.id} task={task} onOpen={onOpenTask} />
+            ))
           ) : (
             <div className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 px-4 py-6 text-center">
               <p className="text-sm font-medium text-foreground">No tasks yet</p>
