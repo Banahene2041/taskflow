@@ -1,9 +1,9 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format, isBefore, parseISO, startOfDay } from "date-fns";
-import { CalendarDays, GripVertical } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +11,10 @@ import { PRIORITY_LABELS, PRIORITY_STYLES } from "@/features/tasks/constants";
 import type { Task } from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 
-type TaskCardProps = {
+type TaskCardContentProps = {
   task: Task;
-  onOpen?: (task: Task) => void;
   className?: string;
-  isOverlay?: boolean;
+  elevated?: boolean;
 };
 
 function getDueDateState(dueDate: string | null, status: Task["status"]) {
@@ -36,138 +35,170 @@ function getDueDateState(dueDate: string | null, status: Task["status"]) {
   };
 }
 
-export function TaskCard({
+export function TaskCardContent({
   task,
-  onOpen,
   className,
-  isOverlay = false,
-}: TaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: task.id,
-      data: { type: "task", task },
-      disabled: isOverlay,
-    });
-
+  elevated = false,
+}: TaskCardContentProps) {
   const due = getDueDateState(task.dueDate, task.status);
   const priorityStyle = PRIORITY_STYLES[task.priority];
 
-  const style = transform
-    ? { transform: CSS.Translate.toString(transform) }
-    : undefined;
-
   return (
-    <article
-      ref={isOverlay ? undefined : setNodeRef}
-      style={style}
+    <div
       className={cn(
-        "group rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all",
-        !isOverlay && "hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md",
-        isDragging && "opacity-40",
-        isOverlay && "shadow-lg ring-2 ring-primary/30",
+        "rounded-xl border border-border bg-card p-3.5",
+        elevated
+          ? "shadow-[0_12px_40px_rgba(23,25,35,0.18)] ring-1 ring-black/5 dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)] dark:ring-white/10"
+          : "shadow-sm",
         className,
       )}
     >
-      <div className="mb-2 flex items-start gap-2">
-        <button
-          type="button"
-          className="mt-0.5 cursor-grab touch-none rounded-md p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground active:cursor-grabbing"
-          aria-label={`Drag ${task.title}`}
-          {...listeners}
-          {...attributes}
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+          {task.title}
+        </h3>
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+            priorityStyle.badge,
+          )}
         >
-          <GripVertical className="size-4" />
-        </button>
-
-        <button
-          type="button"
-          className="min-w-0 flex-1 text-left"
-          onClick={() => onOpen?.(task)}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
-              {task.title}
-            </h3>
-            <span
-              className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-                priorityStyle.badge,
-              )}
-            >
-              <span className={cn("size-1.5 rounded-full", priorityStyle.dot)} />
-              {PRIORITY_LABELS[task.priority]}
-            </span>
-          </div>
-        </button>
+          <span className={cn("size-1.5 rounded-full", priorityStyle.dot)} />
+          {PRIORITY_LABELS[task.priority]}
+        </span>
       </div>
 
-      <button
-        type="button"
-        className="w-full text-left"
-        onClick={() => onOpen?.(task)}
-      >
-        {task.description ? (
-          <p className="mb-3 line-clamp-2 pl-6 text-xs leading-relaxed text-muted-foreground">
-            {task.description}
-          </p>
-        ) : null}
+      {task.description ? (
+        <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {task.description}
+        </p>
+      ) : null}
 
-        {task.labels.length > 0 ? (
-          <div className="mb-3 flex flex-wrap gap-1.5 pl-6">
-            {task.labels.map((label) => (
-              <Badge
-                key={label.id}
-                variant="outline"
-                className="border-transparent text-[11px]"
-                style={{
-                  backgroundColor: `${label.color}18`,
-                  color: label.color,
-                }}
-              >
-                {label.name}
-              </Badge>
-            ))}
-          </div>
-        ) : null}
-
-        <div className="flex items-center justify-between gap-2 pl-6">
-          {due ? (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-                due.isOverdue && "bg-destructive/10 text-destructive",
-                due.isDueSoon &&
-                  !due.isOverdue &&
-                  "bg-warning/15 text-warning-foreground",
-                !due.isOverdue &&
-                  !due.isDueSoon &&
-                  "bg-muted text-muted-foreground",
-              )}
+      {task.labels.length > 0 ? (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {task.labels.map((label) => (
+            <Badge
+              key={label.id}
+              variant="outline"
+              className="border-transparent text-[11px]"
+              style={{
+                backgroundColor: `${label.color}18`,
+                color: label.color,
+              }}
             >
-              <CalendarDays className="size-3" aria-hidden />
-              {due.isOverdue ? `Overdue · ${due.label}` : due.label}
-            </span>
-          ) : (
-            <span />
-          )}
-
-          {task.assignee ? (
-            <Avatar className="size-6 ring-2 ring-card">
-              <AvatarFallback
-                className="text-[10px] font-semibold text-white"
-                style={{ backgroundColor: task.assignee.color }}
-                title={task.assignee.name}
-              >
-                {task.assignee.initials}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <Avatar className="size-6 ring-2 ring-card">
-              <AvatarFallback className="text-[10px]">—</AvatarFallback>
-            </Avatar>
-          )}
+              {label.name}
+            </Badge>
+          ))}
         </div>
-      </button>
-    </article>
+      ) : null}
+
+      <div className="flex items-center justify-between gap-2">
+        {due ? (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+              due.isOverdue && "bg-destructive/10 text-destructive",
+              due.isDueSoon &&
+                !due.isOverdue &&
+                "bg-warning/15 text-warning-foreground",
+              !due.isOverdue &&
+                !due.isDueSoon &&
+                "bg-muted text-muted-foreground",
+            )}
+          >
+            <CalendarDays className="size-3" aria-hidden />
+            {due.isOverdue ? `Overdue · ${due.label}` : due.label}
+          </span>
+        ) : (
+          <span />
+        )}
+
+        {task.assignee ? (
+          <Avatar className="size-6 ring-2 ring-card">
+            <AvatarFallback
+              className="text-[10px] font-semibold text-white"
+              style={{ backgroundColor: task.assignee.color }}
+              title={task.assignee.name}
+            >
+              {task.assignee.initials}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          <Avatar className="size-6 ring-2 ring-card">
+            <AvatarFallback className="text-[10px]">—</AvatarFallback>
+          </Avatar>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type SortableTaskCardProps = {
+  task: Task;
+  onOpen?: (task: Task) => void;
+};
+
+export function SortableTaskCard({ task, onOpen }: SortableTaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "task",
+      task,
+      status: task.status,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "relative touch-none",
+        isDragging && "z-10",
+      )}
+    >
+      {/* Asana/Notion-style insertion placeholder while the card is lifted */}
+      {isDragging ? (
+        <div
+          className="rounded-xl border-2 border-dashed border-primary/35 bg-primary/5"
+          style={{ minHeight: 96 }}
+          aria-hidden
+        />
+      ) : (
+        <button
+          type="button"
+          className={cn(
+            "block w-full cursor-grab text-left active:cursor-grabbing",
+            "rounded-xl outline-none transition-[box-shadow,transform] duration-150",
+            "hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          )}
+          onClick={() => onOpen?.(task)}
+          {...attributes}
+          {...listeners}
+        >
+          <TaskCardContent task={task} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function TaskCardOverlay({ task }: { task: Task }) {
+  return (
+    <div className="w-[264px] scale-[1.03] rotate-[1.5deg] cursor-grabbing">
+      <TaskCardContent task={task} elevated />
+    </div>
   );
 }
