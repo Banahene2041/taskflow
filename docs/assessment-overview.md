@@ -12,7 +12,7 @@ Optimistic DnD keeps status and order updates snappy; writes persist to Supabase
 
 ## Live app
 
-- Frontend URL: _add Vercel URL after deploy_
+- Frontend URL: https://taskflow-livid-iota.vercel.app
 - GitHub repository: https://github.com/Banahene2041/taskflow
 
 ## Database schema
