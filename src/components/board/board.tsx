@@ -20,6 +20,7 @@ import { TaskCardOverlay } from "@/components/board/task-card";
 import { BOARD_COLUMNS } from "@/features/tasks/constants";
 import { useBoardStore } from "@/features/tasks/board-store";
 import { useFilteredTasks, useTasksByStatus } from "@/features/tasks/hooks";
+import { resolveDropIndex } from "@/features/tasks/reorder";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 
 type BoardProps = {
@@ -61,7 +62,7 @@ function resolveStatus(
 }
 
 export function Board({ onOpenTask, onCreateTask }: BoardProps) {
-  const { tasks, members, labels, filters, setFilters, moveTask } =
+  const { tasks, members, labels, filters, setFilters, reorderTask } =
     useBoardStore();
   const filteredTasks = useFilteredTasks(tasks, filters);
   const tasksByStatus = useTasksByStatus(filteredTasks);
@@ -94,21 +95,34 @@ export function Board({ onOpenTask, onCreateTask }: BoardProps) {
 
     if (!over || !current) return;
 
-    const nextStatus = resolveStatus(
-      String(over.id),
-      over.data.current as
-        | { type?: string; status?: TaskStatus; task?: Task }
-        | undefined,
-      tasks,
+    const overId = String(over.id);
+    if (overId === current.id) return;
+
+    const overData = over.data.current as
+      | { type?: string; status?: TaskStatus; task?: Task }
+      | undefined;
+
+    const nextStatus = resolveStatus(overId, overData, tasks);
+    if (!nextStatus) return;
+
+    const destination = tasksByStatus[nextStatus];
+    const toIndex = resolveDropIndex(
+      overId,
+      overData?.type,
+      destination,
+      current.id,
     );
 
-    if (!nextStatus || current.status === nextStatus) return;
+    if (current.status === nextStatus) {
+      const fromIndex = destination.findIndex((task) => task.id === current.id);
+      if (fromIndex === toIndex) return;
+    }
 
     try {
-      await moveTask(current.id, nextStatus);
+      await reorderTask(current.id, nextStatus, toIndex);
     } catch (err) {
       setMoveError(
-        err instanceof Error ? err.message : "Failed to update task status.",
+        err instanceof Error ? err.message : "Failed to reorder task.",
       );
     }
   }

@@ -1,6 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 
 import { TaskCard } from "@/components/board/task-card";
@@ -35,6 +40,7 @@ export function BoardColumn({
   });
 
   const highlighted = Boolean(active) && isOver;
+  const itemIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
 
   return (
     <section
@@ -63,9 +69,11 @@ export function BoardColumn({
           highlighted && "bg-primary/5 ring-1 ring-primary/30",
         )}
       >
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onOpen={onOpenTask} />
-        ))}
+        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} onOpen={onOpenTask} />
+          ))}
+        </SortableContext>
 
         {tasks.length === 0 ? (
           <div

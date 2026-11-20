@@ -1,6 +1,6 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format, isBefore, parseISO, startOfDay } from "date-fns";
 import { Check, Circle } from "lucide-react";
@@ -131,18 +131,25 @@ type TaskCardProps = {
 };
 
 export function TaskCard({ task, onOpen }: TaskCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: task.id,
-      data: {
-        type: "task",
-        task,
-        status: task.status,
-      },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "task",
+      task,
+      status: task.status,
+    },
+  });
 
   const style = {
-    transform: isDragging ? undefined : CSS.Translate.toString(transform),
+    transform: CSS.Transform.toString(transform),
+    transition,
   };
 
   return (

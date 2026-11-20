@@ -98,7 +98,7 @@ export function resolveDropIndex(
   columnTasks: Task[],
   activeId: string,
 ): number {
-  if (overType === "section") {
+  if (overType === "section" || overType === "column") {
     return columnTasks.filter((task) => task.id !== activeId).length;
   }
 
