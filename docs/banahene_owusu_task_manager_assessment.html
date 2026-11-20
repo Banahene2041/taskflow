@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Banahene Owusu — Task Manager Assessment</title>
+  <style>
+    @page { margin: 0.7in; size: letter; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: #1e1f21; line-height: 1.5; font-size: 11pt;
+    }
+    h1 { font-size: 20pt; margin: 0 0 4pt; }
+    h2 {
+      font-size: 13pt; margin: 20pt 0 8pt; padding-bottom: 4pt;
+      border-bottom: 1px solid #d8d8d9;
+    }
+    p, li { margin: 0 0 7pt; }
+    ul, ol { margin: 0 0 10pt; padding-left: 1.2em; }
+    a { color: #4573d2; word-break: break-all; }
+    .meta { color: #6d6e6f; font-size: 10pt; margin-bottom: 14pt; }
+    .links {
+      background: #f6f8f9; border: 1px solid #e0e0e1; border-radius: 8px;
+      padding: 10pt 12pt; margin: 8pt 0 14pt;
+    }
+    .links p { margin: 0 0 5pt; }
+    .links p:last-child { margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt; font-size: 10pt; }
+    th, td { border: 1px solid #d8d8d9; padding: 5pt 7pt; text-align: left; vertical-align: top; }
+    th { background: #f6f8f9; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9pt; }
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 7.5pt; line-height: 1.35;
+      background: #1e1f21; color: #f5f4f3; border-radius: 8px;
+      padding: 10pt; white-space: pre-wrap; word-break: break-word;
+    }
+    .check { list-style: none; padding-left: 0; }
+    .check li::before { content: "✓ "; color: #30a46c; font-weight: 700; }
+    .appendix { page-break-before: always; }
+    .note { font-size: 9.5pt; color: #6d6e6f; }
+  </style>
+</head>
+<body>
+  <h1>TaskFlow — Software Development Assessment</h1>
+  <p class="meta">
+    Banahene Owusu · Next Play Games Internship · Kanban Task Board<br />
+    File: <code>banahene_owusu_task_manager_assessment.pdf</code>
+  </p>
+
+  <div class="links">
+    <p><strong>Live app:</strong> <a href="https://taskflow-livid-iota.vercel.app">https://taskflow-livid-iota.vercel.app</a></p>
+    <p><strong>GitHub:</strong> <a href="https://github.com/Banahene2041/taskflow">https://github.com/Banahene2041/taskflow</a></p>
+  </div>
+
+  <h2>1. Overview &amp; design decisions</h2>
+  <p>
+    TaskFlow is a guest-session Kanban board inspired by Asana and Linear: calm surfaces,
+    clear hierarchy, and intentional interaction design. The stack is <strong>Next.js 16 (App Router)</strong>,
+    <strong>TypeScript</strong>, <strong>Tailwind CSS 4</strong>, <strong>shadcn/ui</strong>,
+    <strong>Supabase</strong> (anonymous auth + Postgres RLS), and <strong>@dnd-kit</strong> for drag-and-drop.
+  </p>
+  <p>
+    Design tokens live in CSS variables for light and dark themes (Asana-like neutrals, coral Create button,
+    blue active tabs). The shell uses a persistent sidebar, sticky header with search, List and Board views,
+    and a horizontally scrollable board so columns stay readable on smaller screens.
+  </p>
+  <p>
+    Optimistic drag-and-drop keeps status and order updates snappy; writes persist to Supabase on drop.
+    Each browser gets an anonymous guest session so data is isolated by <code>user_id</code> under RLS.
+  </p>
+
+  <h2>2. Required features</h2>
+  <ul class="check">
+    <li>Kanban columns: To Do, In Progress, In Review, Done</li>
+    <li>Drag tasks between columns (status updates on drop)</li>
+    <li>Create tasks with title + optional description, priority, due date, assignee, labels</li>
+    <li>Guest anonymous auth with automatic session on first launch</li>
+    <li>Row Level Security so each guest only reads/writes their own data</li>
+    <li>Loading, empty, and error states</li>
+    <li>Responsive layout (sidebar sheet on mobile)</li>
+    <li>Hosted live demo on Vercel</li>
+  </ul>
+
+  <h2>3. Advanced features built</h2>
+  <ol>
+    <li><strong>Team members &amp; assignees</strong> — create members with color, assign on create/edit, avatars on cards</li>
+    <li><strong>Task comments</strong> — detail panel, chronological timestamps, <code>comments</code> table</li>
+    <li><strong>Activity log</strong> — trigger-written timeline (created, status moves, edits, assignments)</li>
+    <li><strong>Labels / tags</strong> — create labels, multi-assign, filter board by label</li>
+    <li><strong>Due date indicators</strong> — overdue / due-soon styling on cards</li>
+    <li><strong>Search &amp; filtering</strong> — header search by title; toolbar filters for priority, assignee, label</li>
+    <li><strong>Board summary</strong> — total, completed, and overdue counts above the board</li>
+  </ol>
+  <p class="note">Extras: List view with the same DnD model; within-column reordering via <code>position</code>.</p>
+
+  <h2>4. Local setup</h2>
+  <ol>
+    <li><code>pnpm install</code></li>
+    <li>Copy <code>.env.example</code> → <code>.env.local</code> with <code>NEXT_PUBLIC_SUPABASE_URL</code> and the <strong>publishable/anon</strong> key only</li>
+    <li>Supabase: enable <strong>Authentication → Providers → Anonymous</strong></li>
+    <li>Run <code>supabase/schema.sql</code> in the SQL Editor</li>
+    <li><code>pnpm dev</code> → http://localhost:3000 (guest session starts automatically)</li>
+  </ol>
+  <p><strong>Security:</strong> Never commit the service-role / secret key. Only the public anon/publishable key belongs in the frontend.</p>
+
+  <h2>5. Database schema summary</h2>
+  <table>
+    <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>tasks</code></td><td>Board items: id, title, status, user_id, created_at + description, priority, due_date, assignee_id, position</td></tr>
+      <tr><td><code>team_members</code></td><td>Guest-owned team for assignees</td></tr>
+      <tr><td><code>labels</code> / <code>task_labels</code></td><td>Custom tags + many-to-many</td></tr>
+      <tr><td><code>comments</code></td><td>Task discussion</td></tr>
+      <tr><td><code>task_activity</code></td><td>History (trigger-backed)</td></tr>
+    </tbody>
+  </table>
+  <p>RLS is enabled on all tables (<code>auth.uid()</code> ownership). Full SQL is in the appendix.</p>
+
+  <h2>6. Tradeoffs &amp; future work</h2>
+  <ul>
+    <li>Optimistic client board state (no Realtime yet) — drop persistence meets the brief</li>
+    <li>Anonymous guests cannot recover a session after clearing storage</li>
+    <li>Single assignee per task (multi-assignee needs a join table)</li>
+    <li>CAPTCHA / rate limits would harden anonymous sign-in in production</li>
+    <li>Richer descriptions and attachments as natural follow-ups</li>
+  </ul>
+
+  <h2>7. Security awareness</h2>
+  <ul>
+    <li>Frontend uses only <code>NEXT_PUBLIC_SUPABASE_URL</code> + publishable/anon key</li>
+    <li>RLS policies bind CRUD to <code>auth.uid()</code></li>
+    <li>Service-role key is never used and is not committed</li>
+  </ul>
+
+  <div class="appendix">
+    <h2>Appendix — Full database schema (SQL)</h2>
+    <p class="note">Verbatim from <code>supabase/schema.sql</code>.</p>
+    <pre>-- TaskFlow schema + RLS
+-- Run this in the Supabase SQL Editor (Dashboard → SQL → New query).
+-- Also enable Anonymous Sign-Ins: Authentication → Providers → Anonymous.
+
+create extension if not exists &quot;pgcrypto&quot;;
+
+-- ---------------------------------------------------------------------------
+-- Tables
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null check (char_length(trim(name)) &gt; 0),
+  color text not null default &#x27;#635BFF&#x27;,
+  avatar_url text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.labels (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null check (char_length(trim(name)) &gt; 0),
+  color text not null default &#x27;#635BFF&#x27;,
+  created_at timestamptz not null default now(),
+  unique (user_id, name)
+);
+
+create table if not exists public.tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null check (char_length(trim(title)) &gt; 0),
+  description text,
+  status text not null default &#x27;todo&#x27;
+    check (status in (&#x27;todo&#x27;, &#x27;in_progress&#x27;, &#x27;in_review&#x27;, &#x27;done&#x27;)),
+  priority text not null default &#x27;normal&#x27;
+    check (priority in (&#x27;low&#x27;, &#x27;normal&#x27;, &#x27;high&#x27;)),
+  due_date date,
+  assignee_id uuid references public.team_members (id) on delete set null,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Existing projects: add position if the table was created before this column existed.
+alter table public.tasks
+  add column if not exists position integer not null default 0;
+
+-- Backfill stable per-status positions for rows that still share the default.
+with ranked as (
+  select
+    id,
+    row_number() over (
+      partition by user_id, status
+      order by position asc, created_at asc
+    ) - 1 as next_position
+  from public.tasks
+)
+update public.tasks as t
+set position = ranked.next_position
+from ranked
+where t.id = ranked.id
+  and t.position is distinct from ranked.next_position;
+
+create table if not exists public.task_labels (
+  task_id uuid not null references public.tasks (id) on delete cascade,
+  label_id uuid not null references public.labels (id) on delete cascade,
+  primary key (task_id, label_id)
+);
+
+create table if not exists public.comments (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid not null references public.tasks (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  body text not null check (char_length(trim(body)) &gt; 0),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.task_activity (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid not null references public.tasks (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  action text not null,
+  meta jsonb not null default &#x27;{}&#x27;::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists tasks_user_id_idx on public.tasks (user_id);
+create index if not exists tasks_status_idx on public.tasks (user_id, status);
+create index if not exists tasks_status_position_idx on public.tasks (user_id, status, position);
+create index if not exists team_members_user_id_idx on public.team_members (user_id);
+create index if not exists labels_user_id_idx on public.labels (user_id);
+create index if not exists comments_task_id_idx on public.comments (task_id);
+create index if not exists task_activity_task_id_idx on public.task_activity (task_id);
+
+-- ---------------------------------------------------------------------------
+-- updated_at trigger
+-- ---------------------------------------------------------------------------
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists tasks_set_updated_at on public.tasks;
+create trigger tasks_set_updated_at
+before update on public.tasks
+for each row
+execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Activity helpers
+-- ---------------------------------------------------------------------------
+
+create or replace function public.log_task_activity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = &#x27;INSERT&#x27; then
+    insert into public.task_activity (task_id, user_id, action, meta)
+    values (
+      new.id,
+      new.user_id,
+      &#x27;created&#x27;,
+      jsonb_build_object(&#x27;title&#x27;, new.title, &#x27;status&#x27;, new.status)
+    );
+    return new;
+  end if;
+
+  if tg_op = &#x27;UPDATE&#x27; then
+    if old.status is distinct from new.status then
+      insert into public.task_activity (task_id, user_id, action, meta)
+      values (
+        new.id,
+        new.user_id,
+        &#x27;status_changed&#x27;,
+        jsonb_build_object(&#x27;from&#x27;, old.status, &#x27;to&#x27;, new.status)
+      );
+    end if;
+
+    if old.title is distinct from new.title
+      or old.description is distinct from new.description
+      or old.priority is distinct from new.priority
+      or old.due_date is distinct from new.due_date then
+      insert into public.task_activity (task_id, user_id, action, meta)
+      values (
+        new.id,
+        new.user_id,
+        &#x27;updated&#x27;,
+        jsonb_build_object(
+          &#x27;title_changed&#x27;, old.title is distinct from new.title,
+          &#x27;priority_changed&#x27;, old.priority is distinct from new.priority,
+          &#x27;due_date_changed&#x27;, old.due_date is distinct from new.due_date
+        )
+      );
+    end if;
+
+    if old.assignee_id is distinct from new.assignee_id then
+      insert into public.task_activity (task_id, user_id, action, meta)
+      values (
+        new.id,
+        new.user_id,
+        &#x27;assignee_changed&#x27;,
+        jsonb_build_object(&#x27;from&#x27;, old.assignee_id, &#x27;to&#x27;, new.assignee_id)
+      );
+    end if;
+
+    return new;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists tasks_log_activity on public.tasks;
+create trigger tasks_log_activity
+after insert or update on public.tasks
+for each row
+execute function public.log_task_activity();
+
+-- ---------------------------------------------------------------------------
+-- RLS
+-- ---------------------------------------------------------------------------
+
+alter table public.team_members enable row level security;
+alter table public.labels enable row level security;
+alter table public.tasks enable row level security;
+alter table public.task_labels enable row level security;
+alter table public.comments enable row level security;
+alter table public.task_activity enable row level security;
+
+-- team_members
+drop policy if exists &quot;team_members_select_own&quot; on public.team_members;
+create policy &quot;team_members_select_own&quot;
+  on public.team_members for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists &quot;team_members_insert_own&quot; on public.team_members;
+create policy &quot;team_members_insert_own&quot;
+  on public.team_members for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;team_members_update_own&quot; on public.team_members;
+create policy &quot;team_members_update_own&quot;
+  on public.team_members for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;team_members_delete_own&quot; on public.team_members;
+create policy &quot;team_members_delete_own&quot;
+  on public.team_members for delete
+  to authenticated
+  using (user_id = auth.uid());
+
+-- labels
+drop policy if exists &quot;labels_select_own&quot; on public.labels;
+create policy &quot;labels_select_own&quot;
+  on public.labels for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists &quot;labels_insert_own&quot; on public.labels;
+create policy &quot;labels_insert_own&quot;
+  on public.labels for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;labels_update_own&quot; on public.labels;
+create policy &quot;labels_update_own&quot;
+  on public.labels for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;labels_delete_own&quot; on public.labels;
+create policy &quot;labels_delete_own&quot;
+  on public.labels for delete
+  to authenticated
+  using (user_id = auth.uid());
+
+-- tasks
+drop policy if exists &quot;tasks_select_own&quot; on public.tasks;
+create policy &quot;tasks_select_own&quot;
+  on public.tasks for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists &quot;tasks_insert_own&quot; on public.tasks;
+create policy &quot;tasks_insert_own&quot;
+  on public.tasks for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;tasks_update_own&quot; on public.tasks;
+create policy &quot;tasks_update_own&quot;
+  on public.tasks for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists &quot;tasks_delete_own&quot; on public.tasks;
+create policy &quot;tasks_delete_own&quot;
+  on public.tasks for delete
+  to authenticated
+  using (user_id = auth.uid());
+
+-- task_labels (via owned task)
+drop policy if exists &quot;task_labels_select_own&quot; on public.task_labels;
+create policy &quot;task_labels_select_own&quot;
+  on public.task_labels for select
+  to authenticated
+  using (
+    exists (
+      select 1 from public.tasks t
+      where t.id = task_id and t.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists &quot;task_labels_insert_own&quot; on public.task_labels;
+create policy &quot;task_labels_insert_own&quot;
+  on public.task_labels for insert
+  to authenticated
+  with check (
+    exists (
+      select 1 from public.tasks t
+      where t.id = task_id and t.user_id = auth.uid()
+    )
+    and exists (
+      select 1 from public.labels l
+      where l.id = label_id and l.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists &quot;task_labels_delete_own&quot; on public.task_labels;
+create policy &quot;task_labels_delete_own&quot;
+  on public.task_labels for delete
+  to authenticated
+  using (
+    exists (
+      select 1 from public.tasks t
+      where t.id = task_id and t.user_id = auth.uid()
+    )
+  );
+
+-- comments
+drop policy if exists &quot;comments_select_own&quot; on public.comments;
+create policy &quot;comments_select_own&quot;
+  on public.comments for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists &quot;comments_insert_own&quot; on public.comments;
+create policy &quot;comments_insert_own&quot;
+  on public.comments for insert
+  to authenticated
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.tasks t
+      where t.id = task_id and t.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists &quot;comments_delete_own&quot; on public.comments;
+create policy &quot;comments_delete_own&quot;
+  on public.comments for delete
+  to authenticated
+  using (user_id = auth.uid());
+
+-- task_activity
+drop policy if exists &quot;task_activity_select_own&quot; on public.task_activity;
+create policy &quot;task_activity_select_own&quot;
+  on public.task_activity for select
+  to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists &quot;task_activity_insert_own&quot; on public.task_activity;
+create policy &quot;task_activity_insert_own&quot;
+  on public.task_activity for insert
+  to authenticated
+  with check (user_id = auth.uid());
+</pre>
+  </div>
+</body>
+</html>
