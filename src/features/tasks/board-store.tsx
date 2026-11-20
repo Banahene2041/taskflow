@@ -22,6 +22,7 @@ import {
   fetchActivity,
   fetchBoardData,
   fetchComments,
+  seedDemoData,
   updateTask,
   updateTaskStatus,
 } from "@/features/tasks/api";
@@ -63,6 +64,7 @@ type BoardStoreValue = {
   loadComments: (taskId: string) => Promise<TaskComment[]>;
   addComment: (input: CreateCommentInput) => Promise<TaskComment>;
   loadActivity: (taskId: string) => Promise<TaskActivity[]>;
+  seedDemo: () => Promise<void>;
 };
 
 const defaultFilters: BoardFilters = {
@@ -195,6 +197,23 @@ export function BoardStoreProvider({ children }: { children: ReactNode }) {
       loadComments: fetchComments,
       addComment: createComment,
       loadActivity: fetchActivity,
+      async seedDemo() {
+        setLoading(true);
+        setError(null);
+        try {
+          const data = await seedDemoData();
+          setTasks(data.tasks);
+          setMembers(data.members);
+          setLabels(data.labels);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load demo data.",
+          );
+          throw err;
+        } finally {
+          setLoading(false);
+        }
+      },
     }),
     [
       tasks,

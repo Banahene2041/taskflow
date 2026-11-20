@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 import { Board } from "@/components/board/board";
 import { SetupGate } from "@/components/board/setup-gate";
@@ -8,6 +9,7 @@ import { StatsCards } from "@/components/board/stats-cards";
 import { TaskDetailPanel } from "@/components/board/task-detail-panel";
 import { TaskDialog } from "@/components/board/task-dialog";
 import { AppShell } from "@/components/layout/app-shell";
+import { Button } from "@/components/ui/button";
 import { useBoardStore } from "@/features/tasks/board-store";
 import { useTaskStats } from "@/features/tasks/hooks";
 import type { Task, TaskStatus } from "@/features/tasks/types";
@@ -17,14 +19,30 @@ import { useAuth } from "@/providers/auth-provider";
 export function Dashboard() {
   const { configured, loading: authLoading, error: authError, refresh } =
     useAuth();
-  const { tasks, members, loading, error, refresh: refreshBoard } =
-    useBoardStore();
+  const {
+    tasks,
+    members,
+    loading,
+    error,
+    refresh: refreshBoard,
+    seedDemo,
+  } = useBoardStore();
   const stats = useTaskStats(tasks);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+
+  async function handleSeedDemo() {
+    setSeeding(true);
+    try {
+      await seedDemo();
+    } finally {
+      setSeeding(false);
+    }
+  }
 
   if (!configured) {
     return <SetupGate />;
@@ -102,6 +120,25 @@ export function Dashboard() {
           </div>
         ) : (
           <>
+            {tasks.length === 0 ? (
+              <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card/60 px-5 py-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-medium">Your board is empty</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Create a task, or load demo data to try drag-and-drop,
+                    filters, comments, and assignees.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => void handleSeedDemo()}
+                  disabled={seeding}
+                  className="shrink-0"
+                >
+                  <Sparkles className="size-4" />
+                  {seeding ? "Loading demo…" : "Load demo data"}
+                </Button>
+              </div>
+            ) : null}
             <StatsCards stats={stats} />
             <Board onOpenTask={openTask} onCreateTask={openCreate} />
           </>

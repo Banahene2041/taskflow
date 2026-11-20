@@ -300,3 +300,128 @@ export async function fetchActivity(taskId: string): Promise<TaskActivity[]> {
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapActivity);
 }
+
+/**
+ * Seeds a realistic demo board for the current guest session.
+ */
+export async function seedDemoData(): Promise<{
+  tasks: Task[];
+  members: TaskAssignee[];
+  labels: TaskLabel[];
+}> {
+  const existing = await fetchBoardData();
+  if (existing.tasks.length > 0) {
+    return existing;
+  }
+
+  const labels = await ensureDefaultLabels();
+  const labelByName = new Map(labels.map((label) => [label.name, label.id]));
+
+  let members = existing.members;
+  if (members.length === 0) {
+    members = [
+      await createMember({ name: "Alex Rivera", color: "#635BFF" }),
+      await createMember({ name: "Jordan Lee", color: "#30A46C" }),
+      await createMember({ name: "Sam Chen", color: "#F5A524" }),
+    ];
+  }
+
+  const [alex, jordan, sam] = members;
+  const today = new Date();
+  const isoDate = (offsetDays: number) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + offsetDays);
+    return date.toISOString().slice(0, 10);
+  };
+
+  const demos: CreateTaskInput[] = [
+    {
+      title: "Map onboarding empty states",
+      description: "Define empty, loading, and error treatments for first-time guests.",
+      status: "todo",
+      priority: "high",
+      dueDate: isoDate(2),
+      assigneeId: alex?.id ?? null,
+      labelIds: [labelByName.get("Design")].filter(Boolean) as string[],
+    },
+    {
+      title: "Draft task card density rules",
+      description: "Keep titles scannable and metadata quietly secondary.",
+      status: "todo",
+      priority: "normal",
+      dueDate: isoDate(5),
+      assigneeId: sam?.id ?? null,
+      labelIds: [labelByName.get("Feature")].filter(Boolean) as string[],
+    },
+    {
+      title: "Wire anonymous guest session",
+      description: "Confirm Supabase anonymous auth and RLS for the guest board.",
+      status: "in_progress",
+      priority: "high",
+      dueDate: isoDate(1),
+      assigneeId: jordan?.id ?? null,
+      labelIds: [labelByName.get("Feature")].filter(Boolean) as string[],
+    },
+    {
+      title: "Polish board column headers",
+      description: "Counts, subtle borders, and calm hover affordances.",
+      status: "in_progress",
+      priority: "normal",
+      dueDate: isoDate(4),
+      assigneeId: alex?.id ?? null,
+      labelIds: [labelByName.get("Design")].filter(Boolean) as string[],
+    },
+    {
+      title: "Review priority badge contrast",
+      description: "Validate light and dark theme contrast for priority badges.",
+      status: "in_review",
+      priority: "low",
+      dueDate: isoDate(0),
+      assigneeId: sam?.id ?? null,
+      labelIds: [labelByName.get("Bug")].filter(Boolean) as string[],
+    },
+    {
+      title: "Ship application shell layout",
+      description: "Sidebar, header, theme toggle, and responsive sheet nav.",
+      status: "done",
+      priority: "high",
+      dueDate: isoDate(-1),
+      assigneeId: jordan?.id ?? null,
+      labelIds: [labelByName.get("Feature")].filter(Boolean) as string[],
+    },
+    {
+      title: "Document design tokens",
+      description: "Capture CSS variables and usage rules for the team.",
+      status: "done",
+      priority: "low",
+      dueDate: isoDate(-2),
+      assigneeId: null,
+      labelIds: [labelByName.get("Design")].filter(Boolean) as string[],
+    },
+    {
+      title: "Prepare RLS policy sketch",
+      description: "Users can only read and write their own tasks.",
+      status: "todo",
+      priority: "high",
+      dueDate: isoDate(3),
+      assigneeId: sam?.id ?? null,
+      labelIds: [labelByName.get("Bug")].filter(Boolean) as string[],
+    },
+  ];
+
+  for (const demo of demos) {
+    await createTask(demo);
+  }
+
+  // Add a sample comment on the first created task for detail-panel testing.
+  const seeded = await fetchBoardData();
+  const sampleTask = seeded.tasks.find((task) => task.status === "in_progress");
+  if (sampleTask) {
+    await createComment({
+      taskId: sampleTask.id,
+      body: "Looks good so far — check contrast on dark mode next.",
+    });
+  }
+
+  return fetchBoardData();
+}
