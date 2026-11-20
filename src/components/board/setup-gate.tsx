@@ -21,7 +21,7 @@ export function SetupGate() {
           <li>
             Copy <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">.env.example</code> to{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">.env.local</code> and
-            paste your project URL + anon key.
+            paste your project URL + publishable key.
           </li>
           <li>Restart <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">pnpm dev</code>.</li>
         </ol>

@@ -38,14 +38,14 @@ cp .env.example .env.local
 1. Create a free project at [supabase.com](https://supabase.com).
 2. **Authentication → Providers → Anonymous** → enable.
 3. **SQL Editor** → paste and run [`supabase/schema.sql`](./supabase/schema.sql).
-4. **Project Settings → API** → copy Project URL and `anon` `public` key into `.env.local`:
+4. **Project Settings → API** → copy Project URL and the **publishable** key into `.env.local`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-Never put the **service role** key in the frontend or commit it.
+Never put **secret** / **service role** keys in the frontend or commit them.
 
 ### 3. Run
 
