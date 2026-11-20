@@ -14,6 +14,7 @@ Optimistic DnD keeps status and order updates snappy; writes persist to Supabase
 
 - Frontend URL: https://taskflow-livid-iota.vercel.app
 - GitHub repository: https://github.com/Banahene2041/taskflow
+- Assessment PDF (Google Drive): https://drive.google.com/file/d/1f6Hd6CFXmksJJXuh_v5_tX56R6IA6jym/view?usp=sharing
 
 ## Database schema
 
