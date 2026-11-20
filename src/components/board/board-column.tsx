@@ -34,51 +34,34 @@ export function BoardColumn({
     },
   });
 
-  const dragging = Boolean(active);
-  const highlighted = isOver && dragging;
+  const highlighted = Boolean(active) && isOver;
 
   return (
     <section
       className={cn(
-        "flex w-[288px] shrink-0 flex-col rounded-2xl border bg-muted/35 transition-[border-color,background-color,box-shadow] duration-200 dark:bg-surface/35",
-        highlighted
-          ? "border-primary/45 bg-primary/[0.07] shadow-[inset_0_0_0_1px_rgba(99,91,255,0.14)]"
-          : "border-border",
+        "flex w-[280px] shrink-0 flex-col",
         className,
       )}
       aria-labelledby={`column-${column.id}-title`}
     >
-      <header className="flex items-start justify-between gap-2 px-3.5 pb-2 pt-3.5">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h2
-              id={`column-${column.id}-title`}
-              className="text-sm font-semibold tracking-tight"
-            >
-              {column.title}
-            </h2>
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-card px-1.5 text-[11px] font-medium tabular-nums text-muted-foreground shadow-sm">
-              {tasks.length}
-            </span>
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {column.description}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="shrink-0 text-muted-foreground"
-          aria-label={`Add task to ${column.title}`}
-          onClick={() => onCreateInColumn(column.id)}
+      <header className="mb-3 flex items-center gap-2 px-1">
+        <h2
+          id={`column-${column.id}-title`}
+          className="text-sm font-semibold tracking-tight text-foreground"
         >
-          <Plus className="size-4" />
-        </Button>
+          {column.title}
+        </h2>
+        <span className="text-sm tabular-nums text-muted-foreground">
+          {tasks.length}
+        </span>
       </header>
 
       <div
         ref={setNodeRef}
-        className="flex min-h-[22rem] flex-1 flex-col gap-2.5 px-2.5 pb-3"
+        className={cn(
+          "flex min-h-[18rem] flex-1 flex-col gap-2 rounded-xl p-1 transition-colors",
+          highlighted && "bg-primary/5 ring-1 ring-primary/30",
+        )}
       >
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} onOpen={onOpenTask} />
@@ -87,24 +70,27 @@ export function BoardColumn({
         {tasks.length === 0 ? (
           <div
             className={cn(
-              "flex min-h-28 flex-1 flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition-colors duration-200",
+              "flex min-h-24 flex-col items-center justify-center rounded-xl border border-dashed px-3 py-5 text-center",
               highlighted
-                ? "border-primary/45 bg-primary/5"
-                : "border-border/80 bg-card/40",
+                ? "border-primary/40 bg-primary/5"
+                : "border-border/70",
             )}
           >
-            <p className="text-sm font-medium text-foreground">
-              {highlighted ? "Release to drop" : "Drop tasks here"}
+            <p className="text-sm text-muted-foreground">
+              {highlighted ? "Release to drop" : "No tasks"}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Or create a new task in this column
-            </p>
-          </div>
-        ) : highlighted ? (
-          <div className="rounded-xl border-2 border-dashed border-primary/35 bg-primary/[0.05] px-3 py-4 text-center text-xs font-medium text-primary">
-            Drop to move here
           </div>
         ) : null}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-1 justify-start text-muted-foreground hover:text-foreground"
+          onClick={() => onCreateInColumn(column.id)}
+        >
+          <Plus className="size-4" />
+          Add task
+        </Button>
       </div>
     </section>
   );

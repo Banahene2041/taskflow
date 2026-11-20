@@ -1,8 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Filter, Search, SlidersHorizontal } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ type BoardToolbarProps = {
   members: TaskAssignee[];
   labels: TaskLabel[];
   onFiltersChange: (next: Partial<BoardFilters>) => void;
+  onCreateTask?: () => void;
 };
 
 export function BoardToolbar({
@@ -32,35 +33,20 @@ export function BoardToolbar({
   members,
   labels,
   onFiltersChange,
+  onCreateTask,
 }: BoardToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <h2 className="text-base font-semibold tracking-tight">Kanban board</h2>
-        <p className="text-sm text-muted-foreground">
-          {taskCount} visible task{taskCount === 1 ? "" : "s"} · drag cards
-          between columns
-        </p>
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="secondary" size="sm" onClick={onCreateTask}>
+          + Add task
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {taskCount} task{taskCount === 1 ? "" : "s"}
+        </span>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative sm:col-span-2 lg:col-span-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            type="search"
-            value={filters.search}
-            onChange={(event) =>
-              onFiltersChange({ search: event.target.value })
-            }
-            placeholder="Search title..."
-            className="h-9 pl-9"
-            aria-label="Search tasks by title"
-          />
-        </div>
-
+      <div className="flex flex-wrap items-center gap-2">
         <Select
           value={filters.priority}
           onValueChange={(value) =>
@@ -69,8 +55,9 @@ export function BoardToolbar({
             })
           }
         >
-          <SelectTrigger className="h-9">
-            <SelectValue placeholder="Priority" />
+          <SelectTrigger className="h-8 w-[140px] border-transparent bg-transparent shadow-none">
+            <Filter className="size-3.5" />
+            <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All priorities</SelectItem>
@@ -86,7 +73,8 @@ export function BoardToolbar({
           value={filters.assigneeId}
           onValueChange={(value) => onFiltersChange({ assigneeId: value })}
         >
-          <SelectTrigger className="h-9">
+          <SelectTrigger className="h-8 w-[150px] border-transparent bg-transparent shadow-none">
+            <SlidersHorizontal className="size-3.5" />
             <SelectValue placeholder="Assignee" />
           </SelectTrigger>
           <SelectContent>
@@ -103,7 +91,8 @@ export function BoardToolbar({
           value={filters.labelId}
           onValueChange={(value) => onFiltersChange({ labelId: value })}
         >
-          <SelectTrigger className="h-9">
+          <SelectTrigger className="h-8 w-[140px] border-transparent bg-transparent shadow-none">
+            <Search className="size-3.5" />
             <SelectValue placeholder="Label" />
           </SelectTrigger>
           <SelectContent>

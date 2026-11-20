@@ -5,15 +5,12 @@ import { Sparkles } from "lucide-react";
 
 import { Board } from "@/components/board/board";
 import { SetupGate } from "@/components/board/setup-gate";
-import { StatsCards } from "@/components/board/stats-cards";
 import { TaskDetailPanel } from "@/components/board/task-detail-panel";
 import { TaskDialog } from "@/components/board/task-dialog";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { useBoardStore } from "@/features/tasks/board-store";
-import { useTaskStats } from "@/features/tasks/hooks";
 import type { Task, TaskStatus } from "@/features/tasks/types";
-import { APP_DESCRIPTION } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
 
 export function Dashboard() {
@@ -21,13 +18,11 @@ export function Dashboard() {
     useAuth();
   const {
     tasks,
-    members,
     loading,
     error,
     refresh: refreshBoard,
     seedDemo,
   } = useBoardStore();
-  const stats = useTaskStats(tasks);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
@@ -59,41 +54,8 @@ export function Dashboard() {
   }
 
   return (
-    <AppShell title="Board" onCreateTask={() => openCreate("todo")}>
-      <div className="mx-auto w-full max-w-[1600px] space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-        <section className="space-y-2">
-          <p className="text-sm font-medium text-primary">Welcome back</p>
-          <h2 className="max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">
-            Keep work flowing with a calm, intentional board.
-          </h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            {APP_DESCRIPTION} Tasks are scoped to your anonymous guest session
-            with Row Level Security.
-          </p>
-        </section>
-
-        {members.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Team
-            </span>
-            {members.map((member) => (
-              <span
-                key={member.id}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium"
-              >
-                <span
-                  className="flex size-5 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                  style={{ backgroundColor: member.color }}
-                >
-                  {member.initials}
-                </span>
-                {member.name}
-              </span>
-            ))}
-          </div>
-        ) : null}
-
+    <AppShell onCreateTask={() => openCreate("todo")}>
+      <div className="space-y-4 px-4 py-4 sm:px-6">
         {(authError || error) && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <p>{authError || error}</p>
@@ -111,35 +73,34 @@ export function Dashboard() {
         )}
 
         {authLoading || loading ? (
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 px-1 py-8 text-sm text-muted-foreground">
             <div
               className="size-5 animate-spin rounded-full border-2 border-border border-t-primary"
               aria-hidden
             />
-            Loading your board…
+            Loading board…
           </div>
         ) : (
           <>
             {tasks.length === 0 ? (
-              <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card/60 px-5 py-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-medium">Your board is empty</p>
+                  <p className="font-medium">No tasks yet</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Create a task, or load demo data to try drag-and-drop,
-                    filters, comments, and assignees.
+                    Add a task or load demo data to explore the board.
                   </p>
                 </div>
                 <Button
+                  variant="secondary"
                   onClick={() => void handleSeedDemo()}
                   disabled={seeding}
                   className="shrink-0"
                 >
                   <Sparkles className="size-4" />
-                  {seeding ? "Loading demo…" : "Load demo data"}
+                  {seeding ? "Loading…" : "Load demo data"}
                 </Button>
               </div>
             ) : null}
-            <StatsCards stats={stats} />
             <Board onOpenTask={openTask} onCreateTask={openCreate} />
           </>
         )}

@@ -13,13 +13,12 @@ export default function SettingsPage() {
   }
 
   return (
-    <AppShell title="Settings">
-      <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 sm:px-6">
-        <section className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">Settings</h2>
+    <AppShell>
+      <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-6 sm:px-6">
+        <section className="space-y-1">
+          <h2 className="text-lg font-semibold tracking-tight">Team & labels</h2>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Manage team members and labels for your guest workspace. Theme
-            preferences live in the header toggle.
+            Manage assignees and tags for your guest workspace.
           </p>
         </section>
 

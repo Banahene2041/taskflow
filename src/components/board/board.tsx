@@ -125,6 +125,7 @@ export function Board({ onOpenTask, onCreateTask }: BoardProps) {
         members={members}
         labels={labels}
         onFiltersChange={setFilters}
+        onCreateTask={() => onCreateTask()}
       />
 
       {moveError ? (

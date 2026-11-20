@@ -1,78 +1,88 @@
 @import "tailwindcss";
 
-/* TaskFlow design tokens — light */
+/* Asana-inspired light tokens */
 :root {
-  --background: #f7f8fa;
-  --foreground: #171923;
+  --background: #f6f8f9;
+  --foreground: #1e1f21;
   --card: #ffffff;
-  --card-foreground: #171923;
+  --card-foreground: #1e1f21;
   --popover: #ffffff;
-  --popover-foreground: #171923;
-  --primary: #635bff;
+  --popover-foreground: #1e1f21;
+  --primary: #4573d2;
   --primary-foreground: #ffffff;
-  --secondary: #eef0f5;
-  --secondary-foreground: #171923;
-  --muted: #eef0f5;
-  --muted-foreground: #717784;
-  --accent: #eef0f5;
-  --accent-foreground: #171923;
-  --destructive: #e5484d;
+  --secondary: #e8eaed;
+  --secondary-foreground: #1e1f21;
+  --muted: #eef0f2;
+  --muted-foreground: #6d6e6f;
+  --accent: #eef0f2;
+  --accent-foreground: #1e1f21;
+  --destructive: #e8384f;
   --destructive-foreground: #ffffff;
-  --border: #e7e9ef;
-  --input: #e7e9ef;
-  --ring: #635bff;
+  --border: #d8d8d9;
+  --input: #d8d8d9;
+  --ring: #4573d2;
   --surface: #ffffff;
   --surface-elevated: #ffffff;
-  --success: #30a46c;
-  --success-foreground: #ffffff;
-  --warning: #f5a524;
-  --warning-foreground: #171923;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #171923;
-  --sidebar-border: #e7e9ef;
-  --sidebar-accent: #f3f4f8;
-  --sidebar-accent-foreground: #171923;
-  --radius: 0.75rem;
-  --shadow-sm: 0 1px 2px rgba(23, 25, 35, 0.04);
-  --shadow-md: 0 4px 12px rgba(23, 25, 35, 0.06);
-  --shadow-lg: 0 12px 32px rgba(23, 25, 35, 0.1);
+  --success: #25e8c8;
+  --success-foreground: #1e1f21;
+  --warning: #fcbd01;
+  --warning-foreground: #1e1f21;
+  --create: #f06a6a;
+  --create-foreground: #ffffff;
+  --brand: #9d68d3;
+  --sidebar: #1e1f21;
+  --sidebar-foreground: #f5f4f3;
+  --sidebar-border: #424244;
+  --sidebar-accent: #2e2f31;
+  --sidebar-accent-foreground: #f5f4f3;
+  --header: #ffffff;
+  --search: #e8eaed;
+  --radius: 0.5rem;
+  --shadow-sm: 0 1px 2px rgba(30, 31, 33, 0.06);
+  --shadow-md: 0 4px 12px rgba(30, 31, 33, 0.08);
+  --shadow-lg: 0 12px 28px rgba(30, 31, 33, 0.12);
 }
 
-/* TaskFlow design tokens — dark */
+/* Asana-inspired dark tokens */
 .dark {
-  --background: #171923;
-  --foreground: #f5f6fa;
-  --card: #242735;
-  --card-foreground: #f5f6fa;
-  --popover: #242735;
-  --popover-foreground: #f5f6fa;
-  --primary: #7b74ff;
+  --background: #1e1f21;
+  --foreground: #f5f4f3;
+  --card: #2a2b2d;
+  --card-foreground: #f5f4f3;
+  --popover: #2a2b2d;
+  --popover-foreground: #f5f4f3;
+  --primary: #4573d2;
   --primary-foreground: #ffffff;
-  --secondary: #303445;
-  --secondary-foreground: #f5f6fa;
-  --muted: #303445;
-  --muted-foreground: #a0a5b1;
-  --accent: #303445;
-  --accent-foreground: #f5f6fa;
-  --destructive: #e5484d;
+  --secondary: #3a3b3d;
+  --secondary-foreground: #f5f4f3;
+  --muted: #2e2f31;
+  --muted-foreground: #a2a0a2;
+  --accent: #3a3b3d;
+  --accent-foreground: #f5f4f3;
+  --destructive: #f06a6a;
   --destructive-foreground: #ffffff;
-  --border: #383d4e;
-  --input: #383d4e;
-  --ring: #7b74ff;
-  --surface: #242735;
-  --surface-elevated: #303445;
-  --success: #3dd68c;
-  --success-foreground: #171923;
-  --warning: #f5a524;
-  --warning-foreground: #171923;
-  --sidebar: #1c1f2e;
-  --sidebar-foreground: #f5f6fa;
-  --sidebar-border: #383d4e;
-  --sidebar-accent: #303445;
-  --sidebar-accent-foreground: #f5f6fa;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --border: #424244;
+  --input: #3a3b3d;
+  --ring: #4573d2;
+  --surface: #2a2b2d;
+  --surface-elevated: #3a3b3d;
+  --success: #25e8c8;
+  --success-foreground: #1e1f21;
+  --warning: #fcbd01;
+  --warning-foreground: #1e1f21;
+  --create: #f06a6a;
+  --create-foreground: #ffffff;
+  --brand: #9d68d3;
+  --sidebar: #1e1f21;
+  --sidebar-foreground: #f5f4f3;
+  --sidebar-border: #424244;
+  --sidebar-accent: #2e2f31;
+  --sidebar-accent-foreground: #f5f4f3;
+  --header: #1e1f21;
+  --search: #2e2f31;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -101,17 +111,22 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-create: var(--create);
+  --color-create-foreground: var(--create-foreground);
+  --color-brand: var(--brand);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-header: var(--header);
+  --color-search: var(--search);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
@@ -131,6 +146,6 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--primary) 28%, transparent);
+    background: color-mix(in srgb, var(--primary) 35%, transparent);
   }
 }
