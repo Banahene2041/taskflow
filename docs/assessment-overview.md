@@ -13,7 +13,7 @@ Optimistic DnD keeps status and order updates snappy; writes persist to Supabase
 ## Live app
 
 - Frontend URL: _add Vercel URL after deploy_
-- GitHub repository: _add repo URL_
+- GitHub repository: https://github.com/Banahene2041/taskflow
 
 ## Database schema
 
