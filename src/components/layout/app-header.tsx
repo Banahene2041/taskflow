@@ -46,19 +46,22 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-header">
-      <div className="relative flex h-12 items-center gap-3 px-3 sm:px-4">
+      <div className="flex h-12 items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
               size="icon-sm"
-              className="lg:hidden"
+              className="shrink-0 lg:hidden"
               aria-label="Open navigation"
             >
               <Menu className="size-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground">
+          <SheetContent
+            side="left"
+            className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+          >
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation</SheetTitle>
             </SheetHeader>
@@ -66,29 +69,32 @@ export function AppHeader() {
           </SheetContent>
         </Sheet>
 
-        <div className="pointer-events-none absolute inset-x-0 flex justify-center px-16">
-          <div className="pointer-events-auto relative w-full max-w-xl">
-            <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <input
-              ref={searchRef}
-              type="search"
-              value={filters.search}
-              onChange={(event) => setFilters({ search: event.target.value })}
-              placeholder="Search"
-              aria-label="Search tasks"
-              className="h-9 w-full rounded-full border border-border/60 bg-search px-10 pr-14 text-sm text-foreground outline-none ring-0 placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
-              ⌘ K
-            </kbd>
-          </div>
+        <div className="relative min-w-0 flex-1 lg:mx-auto lg:max-w-xl">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <input
+            ref={searchRef}
+            type="search"
+            value={filters.search}
+            onChange={(event) => setFilters({ search: event.target.value })}
+            placeholder="Search"
+            aria-label="Search tasks"
+            className="h-9 w-full rounded-full border border-border/60 bg-search py-0 pl-9 pr-3 text-base text-foreground outline-none ring-0 placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-ring sm:pr-14 sm:text-sm"
+          />
+          <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
+            ⌘ K
+          </kbd>
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button variant="ghost" size="icon-sm" aria-label="Help" className="hidden sm:inline-flex">
+        <div className="ml-0 flex shrink-0 items-center gap-1 sm:gap-1.5">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Help"
+            className="hidden sm:inline-flex"
+          >
             <HelpCircle className="size-4" />
           </Button>
           <ThemeToggle />
