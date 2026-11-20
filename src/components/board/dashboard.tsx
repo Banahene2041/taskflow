@@ -5,11 +5,13 @@ import { Sparkles } from "lucide-react";
 
 import { Board } from "@/components/board/board";
 import { SetupGate } from "@/components/board/setup-gate";
+import { StatsCards } from "@/components/board/stats-cards";
 import { TaskDetailPanel } from "@/components/board/task-detail-panel";
 import { TaskDialog } from "@/components/board/task-dialog";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { useBoardStore } from "@/features/tasks/board-store";
+import { useTaskStats } from "@/features/tasks/hooks";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -23,6 +25,7 @@ export function Dashboard() {
     refresh: refreshBoard,
     seedDemo,
   } = useBoardStore();
+  const stats = useTaskStats(tasks);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
@@ -100,7 +103,9 @@ export function Dashboard() {
                   {seeding ? "Loading…" : "Load demo data"}
                 </Button>
               </div>
-            ) : null}
+            ) : (
+              <StatsCards stats={stats} />
+            )}
             <Board onOpenTask={openTask} onCreateTask={openCreate} />
           </>
         )}

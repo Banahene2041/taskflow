@@ -85,7 +85,7 @@ Full SQL lives in [`supabase/schema.sql`](./supabase/schema.sql).
 
 Tables: `tasks`, `team_members`, `labels`, `task_labels`, `comments`, `task_activity`.
 
-`tasks` fields: `id`, `title`, `description`, `status`, `priority`, `due_date`, `user_id`, `assignee_id`, `created_at`, `updated_at`.
+`tasks` fields: `id`, `title`, `description`, `status`, `priority`, `due_date`, `user_id`, `assignee_id`, `position`, `created_at`, `updated_at`.
 
 ## Deploy (Vercel)
 
