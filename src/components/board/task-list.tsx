@@ -78,77 +78,81 @@ function ListRow({
   };
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "group grid grid-cols-[20px_minmax(0,1fr)_120px_110px] items-center gap-2 rounded-md px-1 py-2 transition-colors",
-        "hover:bg-muted/60",
-        isDragging && "opacity-40",
+    <li ref={setNodeRef} style={style} className="relative touch-none">
+      {isDragging ? (
+        <div
+          className="mx-1 my-0.5 h-10 rounded-md border-2 border-dashed border-primary/40 bg-primary/5"
+          aria-hidden
+        />
+      ) : (
+        <button
+          type="button"
+          className={cn(
+            "group grid w-full cursor-grab grid-cols-[20px_minmax(0,1fr)_120px_110px] items-center gap-2 rounded-md px-1 py-2 text-left transition-colors",
+            "hover:bg-muted/60 active:cursor-grabbing",
+            "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          )}
+          onClick={() => onOpen?.(task)}
+          {...listeners}
+          {...attributes}
+        >
+          <span
+            className="flex size-5 items-center justify-center text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+            aria-hidden
+          >
+            <GripVertical className="size-3.5" />
+          </span>
+
+          <span className="flex min-w-0 items-center gap-2.5">
+            <span
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center rounded-full border",
+                done
+                  ? "border-success bg-success text-success-foreground"
+                  : "border-muted-foreground/50",
+              )}
+            >
+              {done ? (
+                <Check className="size-2.5" strokeWidth={3} />
+              ) : (
+                <Circle className="size-2.5 opacity-0" />
+              )}
+            </span>
+            <span
+              className={cn(
+                "truncate text-sm",
+                done && "text-muted-foreground line-through",
+              )}
+            >
+              {task.title}
+            </span>
+          </span>
+
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            {task.assignee ? (
+              <>
+                <Avatar className="size-5">
+                  <AvatarFallback
+                    className="text-[9px] font-semibold text-white"
+                    style={{ backgroundColor: task.assignee.color }}
+                  >
+                    {task.assignee.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{task.assignee.name}</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground/70">—</span>
+            )}
+          </span>
+
+          <span className="text-right text-xs text-muted-foreground">
+            {task.dueDate
+              ? format(new Date(task.dueDate), "MMM d")
+              : PRIORITY_LABELS[task.priority]}
+          </span>
+        </button>
       )}
-    >
-      <button
-        type="button"
-        className="flex size-5 cursor-grab items-center justify-center rounded text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-        aria-label={`Drag ${task.title}`}
-        {...listeners}
-        {...attributes}
-      >
-        <GripVertical className="size-3.5" />
-      </button>
-
-      <button
-        type="button"
-        className="flex min-w-0 items-center gap-2.5 text-left"
-        onClick={() => onOpen?.(task)}
-      >
-        <span
-          className={cn(
-            "flex size-4 shrink-0 items-center justify-center rounded-full border",
-            done
-              ? "border-success bg-success text-success-foreground"
-              : "border-muted-foreground/50",
-          )}
-        >
-          {done ? (
-            <Check className="size-2.5" strokeWidth={3} />
-          ) : (
-            <Circle className="size-2.5 opacity-0" />
-          )}
-        </span>
-        <span
-          className={cn(
-            "truncate text-sm",
-            done && "text-muted-foreground line-through",
-          )}
-        >
-          {task.title}
-        </span>
-      </button>
-
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        {task.assignee ? (
-          <>
-            <Avatar className="size-5">
-              <AvatarFallback
-                className="text-[9px] font-semibold text-white"
-                style={{ backgroundColor: task.assignee.color }}
-              >
-                {task.assignee.initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate">{task.assignee.name}</span>
-          </>
-        ) : (
-          <span className="text-muted-foreground/70">—</span>
-        )}
-      </div>
-
-      <div className="text-right text-xs text-muted-foreground">
-        {task.dueDate
-          ? format(new Date(task.dueDate), "MMM d")
-          : PRIORITY_LABELS[task.priority]}
-      </div>
     </li>
   );
 }
@@ -307,7 +311,7 @@ export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
           + Add task
         </Button>
         <span className="text-xs text-muted-foreground">
-          Drag the handle to move tasks between sections
+          Drag a row to move tasks between sections
         </span>
       </div>
 
