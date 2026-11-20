@@ -30,11 +30,11 @@
   --create: #f06a6a;
   --create-foreground: #ffffff;
   --brand: #9d68d3;
-  --sidebar: #1e1f21;
-  --sidebar-foreground: #f5f4f3;
-  --sidebar-border: #424244;
-  --sidebar-accent: #2e2f31;
-  --sidebar-accent-foreground: #f5f4f3;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1e1f21;
+  --sidebar-border: #e0e0e1;
+  --sidebar-accent: #eef0f2;
+  --sidebar-accent-foreground: #1e1f21;
   --header: #ffffff;
   --search: #d8dde3;
   --radius: 0.5rem;
