@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
-  closestCorners,
   defaultDropAnimationSideEffects,
   useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
   type DropAnimation,
 } from "@dnd-kit/core";
@@ -27,8 +27,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BOARD_COLUMNS, PRIORITY_LABELS } from "@/features/tasks/constants";
 import { useBoardStore } from "@/features/tasks/board-store";
+import { resolveDropTarget } from "@/features/tasks/dnd";
+import { taskBoardCollisionDetection } from "@/features/tasks/dnd-collision";
 import { useFilteredTasks, useTasksByStatus } from "@/features/tasks/hooks";
-import { resolveDropIndex } from "@/features/tasks/reorder";
 import type { Task, TaskStatus } from "@/features/tasks/types";
 import { cn } from "@/lib/utils";
 
@@ -41,19 +42,6 @@ const dropAnimation: DropAnimation = {
     },
   }),
 };
-
-function resolveStatus(
-  overId: string,
-  overData: { type?: string; status?: TaskStatus; task?: Task } | undefined,
-  tasks: Task[],
-): TaskStatus | null {
-  if (overData?.type === "section" && overData.status) return overData.status;
-  if (overData?.type === "task" && overData.task) return overData.task.status;
-  if (BOARD_COLUMNS.some((column) => column.id === overId)) {
-    return overId as TaskStatus;
-  }
-  return tasks.find((task) => task.id === overId)?.status ?? null;
-}
 
 function ListRowOverlay({ task }: { task: Task }) {
   return (
@@ -251,11 +239,19 @@ type TaskListProps = {
 };
 
 export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
-  const { tasks, filters, reorderTask } = useBoardStore();
+  const {
+    tasks,
+    filters,
+    reorderTaskLocal,
+    restoreTasks,
+    commitTaskOrder,
+  } = useBoardStore();
   const filteredTasks = useFilteredTasks(tasks, filters);
   const grouped = useTasksByStatus(filteredTasks);
+  const groupedAll = useTasksByStatus(tasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
+  const dragSnapshotRef = useRef<Task[] | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -272,44 +268,70 @@ export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
   function handleDragStart(event: DragStartEvent) {
     setActiveTask(taskLookup.get(String(event.active.id)) ?? null);
     setMoveError(null);
+    dragSnapshotRef.current = tasks;
   }
 
-  async function handleDragEnd(event: DragEndEvent) {
-    const { over } = event;
-    const current = activeTask;
-    setActiveTask(null);
-    if (!over || !current) return;
+  function handleDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
 
+    const activeId = String(active.id);
     const overId = String(over.id);
-    if (overId === current.id) return;
+    if (activeId === overId) return;
+
+    const activeTaskState = taskLookup.get(activeId);
+    if (!activeTaskState) return;
 
     const overData = over.data.current as
       | { type?: string; status?: TaskStatus; task?: Task }
       | undefined;
 
-    const nextStatus = resolveStatus(overId, overData, tasks);
-    if (!nextStatus) return;
-
-    const destination = grouped[nextStatus];
-    const toIndex = resolveDropIndex(
+    const target = resolveDropTarget(
       overId,
-      overData?.type,
-      destination,
-      current.id,
+      overData,
+      activeId,
+      groupedAll,
+      tasks,
     );
+    if (!target) return;
 
-    if (current.status === nextStatus) {
-      const fromIndex = destination.findIndex((task) => task.id === current.id);
-      if (fromIndex === toIndex) return;
+    if (
+      activeTaskState.status === target.status &&
+      overData?.type !== "task"
+    ) {
+      return;
     }
 
+    if (activeTaskState.status === target.status) {
+      const fromIndex = groupedAll[target.status].findIndex(
+        (task) => task.id === activeId,
+      );
+      if (fromIndex === target.index) return;
+    }
+
+    reorderTaskLocal(activeId, target.status, target.index);
+  }
+
+  async function handleDragEnd(_event: DragEndEvent) {
+    setActiveTask(null);
+    const snapshot = dragSnapshotRef.current;
+    dragSnapshotRef.current = null;
+    if (!snapshot) return;
+
     try {
-      await reorderTask(current.id, nextStatus, toIndex);
+      await commitTaskOrder(snapshot);
     } catch (err) {
       setMoveError(
         err instanceof Error ? err.message : "Failed to reorder task.",
       );
     }
+  }
+
+  function handleDragCancel() {
+    setActiveTask(null);
+    const snapshot = dragSnapshotRef.current;
+    dragSnapshotRef.current = null;
+    if (snapshot) restoreTasks(snapshot);
   }
 
   if (filteredTasks.length === 0) {
@@ -351,12 +373,13 @@ export function TaskList({ onOpenTask, onCreateTask }: TaskListProps) {
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={taskBoardCollisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={(event) => {
           void handleDragEnd(event);
         }}
-        onDragCancel={() => setActiveTask(null)}
+        onDragCancel={handleDragCancel}
       >
         <div className="space-y-6">
           {BOARD_COLUMNS.map((column) => (

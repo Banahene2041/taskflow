@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -27,6 +28,7 @@ import {
   persistTaskOrder,
   updateTaskStatus,
 } from "@/features/tasks/api";
+import { diffTaskOrder } from "@/features/tasks/dnd";
 import { reorderTasks } from "@/features/tasks/reorder";
 import type {
   CreateCommentInput,
@@ -63,6 +65,14 @@ type BoardStoreValue = {
     status: TaskStatus,
     index: number,
   ) => Promise<void>;
+  /** Optimistic reorder used during multi-column drag. */
+  reorderTaskLocal: (
+    taskId: string,
+    status: TaskStatus,
+    index: number,
+  ) => boolean;
+  restoreTasks: (next: Task[]) => void;
+  commitTaskOrder: (before: Task[]) => Promise<void>;
   removeTask: (taskId: string) => Promise<void>;
   addMember: (input: CreateMemberInput) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
@@ -91,6 +101,8 @@ export function BoardStoreProvider({ children }: { children: ReactNode }) {
   const [filters, setFiltersState] = useState<BoardFilters>(defaultFilters);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
 
   const refresh = useCallback(async () => {
     if (!configured || !user) return;
@@ -193,6 +205,37 @@ export function BoardStoreProvider({ children }: { children: ReactNode }) {
           await persistTaskOrder(updates);
         } catch (err) {
           setTasks(previous);
+          throw err;
+        }
+      },
+      reorderTaskLocal(taskId, status, index) {
+        let changed = false;
+        setTasks((prev) => {
+          const { tasks: nextTasks, updates } = reorderTasks(
+            prev,
+            taskId,
+            status,
+            index,
+          );
+          if (updates.length === 0) return prev;
+          changed = true;
+          tasksRef.current = nextTasks;
+          return nextTasks;
+        });
+        return changed;
+      },
+      restoreTasks(next) {
+        tasksRef.current = next;
+        setTasks(next);
+      },
+      async commitTaskOrder(before) {
+        const updates = diffTaskOrder(before, tasksRef.current);
+        if (updates.length === 0) return;
+        try {
+          await persistTaskOrder(updates);
+        } catch (err) {
+          tasksRef.current = before;
+          setTasks(before);
           throw err;
         }
       },
