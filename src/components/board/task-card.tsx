@@ -1,6 +1,6 @@
 "use client";
 
-import { useSortable } from "@dnd-kit/sortable";
+import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { format, isBefore, parseISO, startOfDay } from "date-fns";
 import { CalendarDays } from "lucide-react";
@@ -48,7 +48,7 @@ export function TaskCardContent({
       className={cn(
         "rounded-xl border border-border bg-card p-3.5",
         elevated
-          ? "shadow-[0_12px_40px_rgba(23,25,35,0.18)] ring-1 ring-black/5 dark:shadow-[0_16px_40px_rgba(0,0,0,0.45)] dark:ring-white/10"
+          ? "shadow-[0_16px_40px_rgba(23,25,35,0.2)] ring-1 ring-black/5 dark:shadow-[0_20px_48px_rgba(0,0,0,0.5)] dark:ring-white/10"
           : "shadow-sm",
         className,
       )}
@@ -133,46 +133,32 @@ export function TaskCardContent({
   );
 }
 
-type SortableTaskCardProps = {
+type TaskCardProps = {
   task: Task;
   onOpen?: (task: Task) => void;
 };
 
-export function SortableTaskCard({ task, onOpen }: SortableTaskCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-    data: {
-      type: "task",
-      task,
-      status: task.status,
-    },
-  });
+export function TaskCard({ task, onOpen }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: task.id,
+      data: {
+        type: "task",
+        task,
+        status: task.status,
+      },
+    });
 
+  // Keep the source in place; the DragOverlay follows the pointer.
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "relative touch-none",
-        isDragging && "z-10",
-      )}
-    >
-      {/* Asana/Notion-style insertion placeholder while the card is lifted */}
+    <div ref={setNodeRef} style={style} className="relative touch-none">
       {isDragging ? (
         <div
-          className="rounded-xl border-2 border-dashed border-primary/35 bg-primary/5"
+          className="rounded-xl border-2 border-dashed border-primary/35 bg-primary/[0.06]"
           style={{ minHeight: 96 }}
           aria-hidden
         />
@@ -181,12 +167,12 @@ export function SortableTaskCard({ task, onOpen }: SortableTaskCardProps) {
           type="button"
           className={cn(
             "block w-full cursor-grab text-left active:cursor-grabbing",
-            "rounded-xl outline-none transition-[box-shadow,transform] duration-150",
+            "rounded-xl outline-none transition-shadow duration-150",
             "hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           )}
           onClick={() => onOpen?.(task)}
-          {...attributes}
           {...listeners}
+          {...attributes}
         >
           <TaskCardContent task={task} />
         </button>
@@ -197,8 +183,10 @@ export function SortableTaskCard({ task, onOpen }: SortableTaskCardProps) {
 
 export function TaskCardOverlay({ task }: { task: Task }) {
   return (
-    <div className="w-[264px] scale-[1.03] rotate-[1.5deg] cursor-grabbing">
-      <TaskCardContent task={task} elevated />
+    <div className="w-[264px] cursor-grabbing">
+      <div className="origin-center scale-[1.03] rotate-[1.25deg]">
+        <TaskCardContent task={task} elevated />
+      </div>
     </div>
   );
 }

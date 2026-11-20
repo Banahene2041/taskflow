@@ -1,13 +1,9 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 
-import { SortableTaskCard } from "@/components/board/task-card";
+import { TaskCard } from "@/components/board/task-card";
 import { Button } from "@/components/ui/button";
 import type {
   BoardColumn as BoardColumnType,
@@ -20,7 +16,6 @@ type BoardColumnProps = {
   tasks: Task[];
   onOpenTask: (task: Task) => void;
   onCreateInColumn: (status: BoardColumnType["id"]) => void;
-  isDropTarget?: boolean;
   className?: string;
 };
 
@@ -29,10 +24,9 @@ export function BoardColumn({
   tasks,
   onOpenTask,
   onCreateInColumn,
-  isDropTarget = false,
   className,
 }: BoardColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef, isOver, active } = useDroppable({
     id: column.id,
     data: {
       type: "column",
@@ -40,14 +34,15 @@ export function BoardColumn({
     },
   });
 
-  const highlighted = isOver || isDropTarget;
+  const dragging = Boolean(active);
+  const highlighted = isOver && dragging;
 
   return (
     <section
       className={cn(
         "flex w-[288px] shrink-0 flex-col rounded-2xl border bg-muted/35 transition-[border-color,background-color,box-shadow] duration-200 dark:bg-surface/35",
         highlighted
-          ? "border-primary/40 bg-primary/[0.06] shadow-[inset_0_0_0_1px_rgba(99,91,255,0.12)]"
+          ? "border-primary/45 bg-primary/[0.07] shadow-[inset_0_0_0_1px_rgba(99,91,255,0.14)]"
           : "border-border",
         className,
       )}
@@ -85,32 +80,29 @@ export function BoardColumn({
         ref={setNodeRef}
         className="flex min-h-[22rem] flex-1 flex-col gap-2.5 px-2.5 pb-3"
       >
-        <SortableContext
-          items={tasks.map((task) => task.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {tasks.map((task) => (
-            <SortableTaskCard
-              key={task.id}
-              task={task}
-              onOpen={onOpenTask}
-            />
-          ))}
-        </SortableContext>
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} onOpen={onOpenTask} />
+        ))}
 
         {tasks.length === 0 ? (
           <div
             className={cn(
-              "flex min-h-28 flex-1 flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition-colors",
+              "flex min-h-28 flex-1 flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition-colors duration-200",
               highlighted
-                ? "border-primary/40 bg-primary/5"
+                ? "border-primary/45 bg-primary/5"
                 : "border-border/80 bg-card/40",
             )}
           >
-            <p className="text-sm font-medium text-foreground">Drop here</p>
+            <p className="text-sm font-medium text-foreground">
+              {highlighted ? "Release to drop" : "Drop tasks here"}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Or create a new task in this column
             </p>
+          </div>
+        ) : highlighted ? (
+          <div className="rounded-xl border-2 border-dashed border-primary/35 bg-primary/[0.05] px-3 py-4 text-center text-xs font-medium text-primary">
+            Drop to move here
           </div>
         ) : null}
       </div>
